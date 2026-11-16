@@ -2,15 +2,15 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<title>IoTGuard — Cybersecurity Command Center</title>
+<title>IoTGuard — Autonomous Cyber Defense Command Center</title>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <meta name="description" content="IoTGuard Real-time ML-Driven IoT Intrusion Detection System — Security Operations Dashboard"/>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='28' font-size='28'>🛡️</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🛡️</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-<link rel="stylesheet" href="/static/dashboard.css?v=4.0.1">
+<link rel="stylesheet" href="/static/dashboard.css?v=5.0.0">
 </head>
 <body>
 
@@ -19,63 +19,66 @@
 
 <!-- REMEDIATION PLAYBOOK & SHAP XAI MODAL -->
 <div class="modal-overlay" id="shap_modal">
-  <div class="modal" style="position:relative;max-width:700px;width:92%;max-height:90vh;overflow-y:auto">
+  <div class="modal modal-shap">
     <button class="modal-close" onclick="closeShapModal()">&times;</button>
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px">
-      <h3 id="shap_title" style="margin:0">🛡️ Remediation Playbook & SHAP XAI</h3>
-      <span id="modal_cat_badge" style="display:none"></span>
+    <div class="modal-header-row">
+      <div class="modal-title-group">
+        <h3 id="shap_title">🛡️ Remediation Playbook &amp; SHAP XAI</h3>
+        <span id="modal_cat_badge" class="tag" style="display:none"></span>
+      </div>
     </div>
-    <div style="font-size:12px;color:var(--text3);margin-bottom:14px">
-      <span id="shap_meta"></span>
+    <div class="modal-meta-row">
+      <span id="shap_meta">Loading incident features...</span>
     </div>
 
     <!-- Structured Playbook Card -->
-    <div id="playbook_card" style="display:none;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.25);border-radius:10px;padding:14px;margin-bottom:18px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <div style="font-weight:700;font-size:13px;color:#f87171;display:flex;align-items:center;gap:6px">
-          <span>📋</span> <span id="pb_title">Automated Remediation Playbook</span>
+    <div id="playbook_card" class="playbook-alert-card" style="display:none">
+      <div class="playbook-card-top">
+        <div class="playbook-heading">
+          <span class="playbook-icon">📋</span>
+          <span id="pb_title">Automated Remediation Playbook</span>
         </div>
-        <span id="pb_severity" class="tag t-bad" style="font-size:10px;font-weight:700">CRITICAL</span>
+        <span id="pb_severity" class="tag t-bad">CRITICAL</span>
       </div>
       
-      <div style="margin-bottom:8px">
-        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;font-weight:600">Recommended Action:</div>
-        <div id="pb_action" style="font-size:13px;color:#f1f5f9;margin-top:2px;font-weight:500"></div>
+      <div class="playbook-section">
+        <div class="playbook-label">Recommended Action:</div>
+        <div id="pb_action" class="playbook-value"></div>
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div class="playbook-grid-2">
         <div>
-          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;font-weight:600">Port Restrictions:</div>
-          <div id="pb_ports" style="font-size:12px;color:#cbd5e1;margin-top:2px"></div>
+          <div class="playbook-label">Port Restrictions:</div>
+          <div id="pb_ports" class="playbook-subvalue"></div>
         </div>
         <div>
-          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;font-weight:600">Rate Limit Policy:</div>
-          <div id="pb_ratelimit" style="font-size:12px;color:#cbd5e1;margin-top:2px"></div>
+          <div class="playbook-label">Rate Limit Policy:</div>
+          <div id="pb_ratelimit" class="playbook-subvalue"></div>
         </div>
       </div>
 
-      <div style="margin-bottom:10px">
-        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;font-weight:600">Enforcement Firewall Rule:</div>
-        <div style="display:flex;gap:6px;align-items:center;margin-top:4px">
-          <code id="pb_rule" style="flex:1;background:rgba(15,23,42,0.85);border:1px solid rgba(255,255,255,0.1);padding:6px 8px;border-radius:6px;font-size:11px;color:#38bdf8;font-family:monospace;word-break:break-all"></code>
-          <button onclick="copyFirewallRule()" style="background:rgba(59,130,246,0.2);border:1px solid rgba(59,130,246,0.4);color:#93c5fd;border-radius:6px;padding:6px 10px;cursor:pointer;font-size:11px">Copy</button>
+      <div class="playbook-section">
+        <div class="playbook-label">Enforcement Firewall Rule:</div>
+        <div class="rule-copy-box">
+          <code id="pb_rule"></code>
+          <button class="btn btn-sm btn-subtle" onclick="copyFirewallRule()">Copy</button>
         </div>
       </div>
 
-      <div>
-        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;font-weight:600">Deep Forensic Payload Hint:</div>
-        <div id="pb_hint" style="font-size:12px;color:#94a3b8;font-style:italic;margin-top:2px"></div>
+      <div class="playbook-section">
+        <div class="playbook-label">Deep Forensic Payload Hint:</div>
+        <div id="pb_hint" class="playbook-hint"></div>
       </div>
     </div>
 
     <!-- SHAP Feature Contributions -->
-    <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px">🔍 Root Cause: Top Feature Contributions (SHAP XAI)</div>
-    <div id="shap_bars"></div>
+    <div class="section-label">Root Cause Feature Contributions (SHAP XAI)</div>
+    <div id="shap_bars" class="shap-bars-container"></div>
 
     <!-- Time-Machine Launch Action -->
-    <div style="margin-top:16px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);display:flex;justify-content:space-between;align-items:center">
-      <span style="font-size:11px;color:var(--text3)">Rewind attack trajectory across preceding sliding windows</span>
-      <button id="btn_open_tm_from_modal" onclick="openTimeMachineFromPlaybook()" style="background:linear-gradient(135deg,rgba(56,189,248,0.25),rgba(99,102,241,0.3));border:1px solid rgba(56,189,248,0.5);color:#38bdf8;padding:7px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;transition:all .2s ease">
+    <div class="modal-action-footer">
+      <span class="modal-footer-hint">Rewind attack trajectory across preceding sliding windows</span>
+      <button id="btn_open_tm_from_modal" class="btn btn-primary-accent" onclick="openTimeMachineFromPlaybook()">
         ⏱️ Open Incident Time-Machine
       </button>
     </div>
@@ -84,121 +87,119 @@
 
 <!-- INCIDENT TIME-MACHINE & FORENSIC SNAPSHOT REPLAY MODAL -->
 <div class="modal-overlay" id="timemachine_modal">
-  <div class="modal" style="position:relative;max-width:960px;width:95%;max-height:92vh;overflow-y:auto;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:22px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.7)">
+  <div class="modal modal-timemachine">
     <button class="modal-close" onclick="closeTimeMachineModal()">&times;</button>
     
     <!-- Modal Header -->
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+    <div class="tm-modal-header">
       <div>
-        <div style="display:flex;align-items:center;gap:10px">
-          <span style="font-size:24px">⏱️</span>
-          <h3 id="tm_title" style="margin:0;font-size:18px;color:#f8fafc">Incident Time-Machine Replay & Forensic Snapshot</h3>
+        <div class="tm-title-wrap">
+          <span class="tm-title-icon">⏱️</span>
+          <h3 id="tm_title">Incident Time-Machine Replay &amp; Forensic Snapshot</h3>
           <span id="tm_cat_badge" class="tag t-bad">DDoS-SYN</span>
         </div>
-        <div style="font-size:12px;color:var(--text3);margin-top:4px" id="tm_meta">
+        <div class="tm-meta-text" id="tm_meta">
           Loading event metadata...
         </div>
       </div>
       
       <!-- Top Actions: Download Button & Integrity Pill -->
-      <div style="display:flex;align-items:center;gap:10px">
-        <div id="tm_sig_badge" style="display:flex;align-items:center;gap:6px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.35);padding:5px 10px;border-radius:6px;font-size:11px;color:#34d399;font-family:monospace">
+      <div class="tm-header-actions">
+        <div id="tm_sig_badge" class="tm-signature-badge">
           <span>🛡️</span> <span id="tm_sig_text">SHA-256 Signed</span>
         </div>
-        <button id="btn_tm_download" onclick="downloadForensicEvidence()" style="background:linear-gradient(135deg,#0284c7,#2563eb);border:none;color:#ffffff;padding:8px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;box-shadow:0 4px 12px rgba(37,99,235,0.3);transition:all .2s">
+        <button id="btn_tm_download" class="btn btn-accent" onclick="downloadForensicEvidence()">
           📥 Download Signed Forensic Evidence (.json)
         </button>
       </div>
     </div>
 
     <!-- Interactive Time-Machine Controls & Scrubber -->
-    <div style="background:rgba(15,23,42,0.7);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:14px;margin-bottom:18px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
-        <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px">Attack Rewind Scrubber:</span>
-          <span id="tm_window_label" style="font-size:12px;font-weight:700;color:#38bdf8;background:rgba(56,189,248,0.15);padding:2px 8px;border-radius:4px">W-0 (Trigger Window)</span>
+    <div class="tm-scrubber-card">
+      <div class="tm-scrubber-top">
+        <div class="tm-scrubber-label-wrap">
+          <span class="tm-scrubber-title">Attack Rewind Scrubber:</span>
+          <span id="tm_window_label" class="tm-window-pill">W-0 (Trigger Window)</span>
         </div>
         
         <!-- Play / Step Controls -->
-        <div style="display:flex;align-items:center;gap:6px">
-          <button onclick="rewindTimeMachineToStart()" title="Rewind to beginning (W-8)" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:#cbd5e1;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:11px">⏮️ Rewind</button>
-          <button onclick="stepTimeMachine(-1)" title="Previous Window" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:#cbd5e1;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:11px">◀ Step</button>
-          <button id="btn_tm_play" onclick="toggleTimeMachinePlay()" title="Auto Play Replay" style="background:rgba(59,130,246,0.25);border:1px solid rgba(59,130,246,0.5);color:#60a5fa;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:600">▶ Play</button>
-          <button onclick="stepTimeMachine(1)" title="Next Window" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:#cbd5e1;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:11px">Step ▶</button>
-          <button onclick="advanceTimeMachineToEnd()" title="Jump to Trigger Window" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:#cbd5e1;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:11px">Trigger ⏭️</button>
+        <div class="tm-playback-btns">
+          <button class="btn btn-sm btn-subtle" onclick="rewindTimeMachineToStart()" title="Rewind to beginning (W-8)">⏮️ Rewind</button>
+          <button class="btn btn-sm btn-subtle" onclick="stepTimeMachine(-1)" title="Previous Window">◀ Step</button>
+          <button id="btn_tm_play" class="btn btn-sm btn-primary-accent" onclick="toggleTimeMachinePlay()" title="Auto Play Replay">▶ Play</button>
+          <button class="btn btn-sm btn-subtle" onclick="stepTimeMachine(1)" title="Next Window">Step ▶</button>
+          <button class="btn btn-sm btn-subtle" onclick="advanceTimeMachineToEnd()" title="Jump to Trigger Window">Trigger ⏭️</button>
         </div>
       </div>
       
-      <!-- Slider Slider -->
-      <div style="display:flex;align-items:center;gap:12px">
-        <span style="font-size:11px;color:#64748b;font-weight:600">W-8 (Past)</span>
-        <input type="range" id="tm_scrubber" min="0" max="8" value="8" step="1" oninput="onTimeMachineScrub(parseInt(this.value))" style="flex:1;accent-color:#38bdf8;cursor:pointer">
-        <span style="font-size:11px;color:#ef4444;font-weight:600">W-0 (Block Trigger)</span>
+      <!-- Slider -->
+      <div class="tm-slider-row">
+        <span class="tm-slider-end past">W-8 (Past)</span>
+        <input type="range" id="tm_scrubber" min="0" max="8" value="8" step="1" oninput="onTimeMachineScrub(parseInt(this.value))">
+        <span class="tm-slider-end trigger">W-0 (Block Trigger)</span>
       </div>
     </div>
 
     <!-- Feature Evolution Timeline Chart -->
-    <div style="background:rgba(15,23,42,0.5);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:14px;margin-bottom:18px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <div style="font-size:12px;font-weight:700;color:var(--text2);display:flex;align-items:center;gap:6px">
+    <div class="tm-chart-card">
+      <div class="tm-chart-header">
+        <div class="tm-chart-title">
           <span>📈</span> Attack Trajectory Feature Evolution (K=8 Sliding Windows)
         </div>
-        <div style="display:flex;align-items:center;gap:12px;font-size:11px">
-          <span style="color:#38bdf8">● syn_ratio</span>
-          <span style="color:#fb7185">● rst_ratio</span>
-          <span style="color:#fbbf24">● flows</span>
-          <span style="color:#818cf8">● bytes_total</span>
+        <div class="tm-chart-legend">
+          <span class="legend-dot dot-syn">● syn_ratio</span>
+          <span class="legend-dot dot-rst">● rst_ratio</span>
+          <span class="legend-dot dot-flows">● flows</span>
+          <span class="legend-dot dot-bytes">● bytes_total</span>
         </div>
       </div>
-      <div style="height:190px;position:relative">
+      <div class="tm-chart-wrap">
         <canvas id="tm_evolution_chart"></canvas>
       </div>
     </div>
 
     <!-- Scrutinized Window 13-Feature Matrix -->
-    <div style="margin-bottom:18px">
-      <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
+    <div class="tm-features-section">
+      <div class="tm-section-heading">
         <span>🔬 Scrutinized Window 13-Feature Vector (<span id="tm_features_window_name">Trigger Window</span>)</span>
-        <span style="font-size:11px;color:var(--text3)">Values update as you scrub timeline</span>
+        <span class="tm-section-hint">Values update as you scrub timeline</span>
       </div>
-      <div id="tm_features_grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));gap:8px">
-        <!-- Populated via JS -->
-      </div>
+      <div id="tm_features_grid" class="tm-features-grid"></div>
     </div>
 
     <!-- Forensic Analysis Panels: SHAP + Zero-Day + MITRE -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+    <div class="tm-dual-grid">
       <!-- Left: SHAP Attributions -->
-      <div style="background:rgba(15,23,42,0.4);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:12px">
-        <div style="font-size:12px;font-weight:700;color:#38bdf8;margin-bottom:8px;display:flex;align-items:center;gap:6px">
+      <div class="tm-panel-card">
+        <div class="tm-panel-title accent-blue">
           <span>🔍</span> SHAP Root Cause Contributions
         </div>
-        <div id="tm_shap_container" style="max-height:180px;overflow-y:auto"></div>
+        <div id="tm_shap_container" class="tm-panel-scroll"></div>
       </div>
 
       <!-- Right: Zero-Day & Novelty -->
-      <div style="background:rgba(15,23,42,0.4);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:12px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-          <div style="font-size:12px;font-weight:700;color:#f59e0b;display:flex;align-items:center;gap:6px">
+      <div class="tm-panel-card">
+        <div class="tm-panel-header-split">
+          <div class="tm-panel-title accent-amber">
             <span>☣️</span> Zero-Day Tail Anomaly Contributors
           </div>
-          <span id="tm_zeroday_badge" class="tag t-warn" style="font-size:10px">Novelty: 0%</span>
+          <span id="tm_zeroday_badge" class="tag t-warn">Novelty: 0%</span>
         </div>
-        <div id="tm_zeroday_container" style="max-height:180px;overflow-y:auto"></div>
+        <div id="tm_zeroday_container" class="tm-panel-scroll"></div>
       </div>
     </div>
 
     <!-- Playbook & Firewall Rule -->
-    <div style="margin-top:14px;background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:12px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <div style="font-size:12px;font-weight:700;color:#f87171;display:flex;align-items:center;gap:6px">
-          <span>🛡️</span> MITRE ATT&CK & Recommended Firewall Rule
+    <div class="tm-rule-card">
+      <div class="tm-rule-header">
+        <div class="tm-rule-title">
+          <span>🛡️</span> MITRE ATT&amp;CK &amp; Recommended Firewall Rule
         </div>
-        <span id="tm_mitre_tag" style="font-size:11px;color:#94a3b8;font-family:monospace">T1498.001 (Direct Network Flood)</span>
+        <span id="tm_mitre_tag" class="tm-mitre-code">T1498.001 (Direct Network Flood)</span>
       </div>
-      <div style="display:flex;gap:6px;align-items:center;margin-top:4px">
-        <code id="tm_firewall_rule" style="flex:1;background:rgba(15,23,42,0.85);border:1px solid rgba(255,255,255,0.1);padding:6px 8px;border-radius:6px;font-size:11px;color:#38bdf8;font-family:monospace;word-break:break-all"></code>
-        <button onclick="copyTimeMachineFirewallRule()" style="background:rgba(59,130,246,0.2);border:1px solid rgba(59,130,246,0.4);color:#93c5fd;border-radius:6px;padding:6px 10px;cursor:pointer;font-size:11px">Copy</button>
+      <div class="rule-copy-box">
+        <code id="tm_firewall_rule"></code>
+        <button class="btn btn-sm btn-subtle" onclick="copyTimeMachineFirewallRule()">Copy</button>
       </div>
     </div>
 
@@ -209,55 +210,53 @@
 <div class="cmd-palette-overlay" id="cmd_palette_overlay" onclick="closeCommandPalette(event)">
   <div class="cmd-palette-modal" onclick="event.stopPropagation()">
     <div class="cmd-search-wrap">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-      <input type="text" id="cmd_palette_input" class="cmd-search-input" placeholder="Type a command, page name, or IP address (e.g. 'fleet', 'verify', '192.168.1.185')..." oninput="filterCommandPalette(this.value)" onkeydown="handleCommandKey(event)" autocomplete="off">
-      <kbd style="background:rgba(255,255,255,0.1);padding:3px 7px;border-radius:4px;font-size:10px;color:#94a3b8;font-family:monospace">ESC</kbd>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="text" id="cmd_palette_input" class="cmd-search-input" placeholder="Search commands, pages, or IP addresses (e.g. 'fleet', 'verify', '192.168.1.185')..." oninput="filterCommandPalette(this.value)" onkeydown="handleCommandKey(event)" autocomplete="off">
+      <kbd class="kbd-pill">ESC</kbd>
     </div>
-    <div class="cmd-results-list" id="cmd_results_list">
-      <!-- Generated dynamically by filterCommandPalette() -->
-    </div>
+    <div class="cmd-results-list" id="cmd_results_list"></div>
   </div>
 </div>
 
 <!-- DEVICE TELEMETRY & QUARANTINE MODAL -->
 <div class="modal-overlay" id="device_modal">
-  <div class="modal" style="position:relative;max-width:560px;width:92%;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;box-shadow:0 20px 25px -5px rgba(0,0,0,0.5)">
+  <div class="modal modal-device">
     <button class="modal-close" onclick="closeDeviceModal()">&times;</button>
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
-      <span id="dev_icon" style="font-size:30px">📡</span>
+    <div class="modal-header-row">
+      <span id="dev_icon" class="device-modal-avatar">📡</span>
       <div>
-        <h3 id="dev_name" style="margin:0;font-size:16px;color:#f8fafc">Device Details</h3>
-        <div id="dev_ip" style="font-size:12px;font-family:monospace;color:var(--text3);margin-top:2px"></div>
+        <h3 id="dev_name">Device Details</h3>
+        <div id="dev_ip" class="device-modal-ip"></div>
       </div>
-      <span id="dev_state_badge" class="tag" style="margin-left:auto;font-weight:700">BENIGN</span>
+      <span id="dev_state_badge" class="tag" style="margin-left:auto">BENIGN</span>
     </div>
 
     <!-- Device Telemetry Grid -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);padding:14px;border-radius:10px">
-      <div>
-        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;font-weight:600">Classification</div>
-        <div id="dev_classification" style="font-weight:700;font-size:13px;color:#38bdf8;margin-top:2px">IoT Device</div>
+    <div class="device-telemetry-grid">
+      <div class="telemetry-cell">
+        <div class="cell-label">Classification</div>
+        <div id="dev_classification" class="cell-value accent-cyan">IoT Device</div>
       </div>
-      <div>
-        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;font-weight:600">Origin / GeoIP</div>
-        <div id="dev_geo" style="font-weight:600;font-size:13px;color:#f1f5f9;margin-top:2px">🏠 Private Network</div>
+      <div class="telemetry-cell">
+        <div class="cell-label">Origin / GeoIP</div>
+        <div id="dev_geo" class="cell-value">🏠 Private Network</div>
       </div>
-      <div>
-        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;font-weight:600">ISP / Provider</div>
-        <div id="dev_isp" style="font-size:12px;color:var(--text2);margin-top:2px">Internal Subnet</div>
+      <div class="telemetry-cell">
+        <div class="cell-label">ISP / Provider</div>
+        <div id="dev_isp" class="cell-value muted">Internal Subnet</div>
       </div>
-      <div>
-        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;font-weight:600">Abuse Score / Threat</div>
-        <div id="dev_threat" style="font-size:12px;color:#94a3b8;margin-top:2px">Clean</div>
+      <div class="telemetry-cell">
+        <div class="cell-label">Abuse Score / Threat</div>
+        <div id="dev_threat" class="cell-value muted">Clean</div>
       </div>
     </div>
 
     <!-- Action Buttons -->
-    <div style="display:flex;gap:12px;margin-top:18px">
-      <button id="btn_dev_quarantine" class="btn" style="flex:1;background:#ef4444;color:#fff;font-weight:700;padding:10px;border-radius:8px;border:none;cursor:pointer" onclick="quarantineCurrentDevice()">
+    <div class="device-actions-row">
+      <button id="btn_dev_quarantine" class="btn btn-danger" onclick="quarantineCurrentDevice()">
         🚫 Quarantine Host (Block)
       </button>
-      <button id="btn_dev_unblock" class="btn" style="flex:1;background:#10b981;color:#fff;font-weight:700;padding:10px;border-radius:8px;border:none;cursor:pointer" onclick="unblockCurrentDevice()">
+      <button id="btn_dev_unblock" class="btn btn-success" onclick="unblockCurrentDevice()">
         ✅ Unblock Host (Restore)
       </button>
     </div>
@@ -266,67 +265,83 @@
 
 <div class="app-layout">
 
-<!-- ============ SIDEBAR ============ -->
+<!-- ============ SIDEBAR (Vaulto Aesthetic) ============ -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-brand">
-    <svg viewBox="0 0 32 32" fill="none">
-      <path d="M16 2L3 9v14l13 7 13-7V9L16 2z" stroke="url(#sg)" stroke-width="2" fill="rgba(59,130,246,.08)"/>
-      <path d="M16 9v8M12 13h8" stroke="url(#sg)" stroke-width="2.5" stroke-linecap="round"/>
-      <circle cx="16" cy="16" r="3" fill="url(#sg)" opacity="0.4"/>
-      <defs><linearGradient id="sg" x1="3" y1="2" x2="29" y2="30"><stop stop-color="#3b82f6"/><stop offset="1" stop-color="#a78bfa"/></linearGradient></defs>
-    </svg>
-    <div>
+    <div class="brand-mark">
+      <svg viewBox="0 0 28 28" fill="none" class="brand-svg">
+        <defs>
+          <linearGradient id="sg" x1="2" y1="2" x2="26" y2="26">
+            <stop stop-color="#ff4d00"/>
+            <stop offset="1" stop-color="#ff7a33"/>
+          </linearGradient>
+        </defs>
+        <path d="M14 2L3 7.5v8c0 7.2 4.7 13.9 11 15.5 6.3-1.6 11-8.3 11-15.5v-8L14 2z" fill="rgba(255, 77, 0, 0.12)" stroke="url(#sg)" stroke-width="2"/>
+        <path d="M14 8v7M10.5 11.5h7" stroke="url(#sg)" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="brand-info">
       <div class="brand-text">IoTGuard</div>
-      <div class="brand-sub">Intrusion Detection System</div>
+      <div class="brand-sub">Autonomous Defense</div>
     </div>
   </div>
 
   <nav class="sidebar-nav">
-    <div class="nav-section">Monitoring</div>
+    <div class="nav-section">MONITORING</div>
     <a class="nav-item active" data-page="dashboard" onclick="switchPage('dashboard')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-      Dashboard
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      <span>Dashboard</span>
       <span class="nav-badge" id="nav_attack_count" style="display:none">0</span>
     </a>
     <a class="nav-item" data-page="network" onclick="switchPage('network')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="3"/><circle cx="5" cy="19" r="3"/><circle cx="19" cy="19" r="3"/><line x1="12" y1="8" x2="5" y2="16"/><line x1="12" y1="8" x2="19" y2="16"/></svg>
-      Network Map
+      <span>Network Map</span>
     </a>
     <a class="nav-item" data-page="analytics" onclick="switchPage('analytics')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-      Analytics
+      <span>Analytics</span>
     </a>
 
-    <div class="nav-section">Enterprise SOC</div>
+    <div class="nav-section">ENTERPRISE SOC</div>
     <a class="nav-item" data-page="fleet" onclick="switchPage('fleet')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
-      Fleet & Edge Sensors
+      <span>Fleet &amp; Edge Sensors</span>
     </a>
     <a class="nav-item" data-page="governance" onclick="switchPage('governance')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><circle cx="12" cy="11" r="3"/></svg>
-      Governance & Audit
+      <span>Governance &amp; Audit</span>
     </a>
     <a class="nav-item" data-page="siem" onclick="switchPage('siem')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
-      SIEM & Threat Intel
+      <span>SIEM &amp; Threat Intel</span>
     </a>
 
-    <div class="nav-section">Control</div>
+    <div class="nav-section">CONTROL</div>
     <a class="nav-item" data-page="controls" onclick="switchPage('controls')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-      Settings
+      <span>Settings</span>
     </a>
     <a class="nav-item" data-page="events" onclick="switchPage('events')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
-      Event Log
+      <span>Event Log</span>
     </a>
 
-    <div class="nav-section">Simulate</div>
+    <div class="nav-section">SIMULATE</div>
     <a class="nav-item" data-page="simulate" onclick="switchPage('simulate')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-      Attack Lab
+      <span>Attack Lab</span>
     </a>
   </nav>
+
+  <!-- Vaulto-style Pro/Enterprise Widget -->
+  <div class="sidebar-pro-card">
+    <div class="pro-card-header">
+      <span class="pro-badge">ENTERPRISE SOC</span>
+      <span class="pro-live-dot"></span>
+    </div>
+    <div class="pro-card-title">Autonomous Defense</div>
+    <div class="pro-card-sub">Hardware XDP drop &amp; cryptographic audit ledger active.</div>
+  </div>
 
   <div class="sidebar-footer">
     <span class="status-dot" id="sidebar_status_dot"></span>
@@ -338,33 +353,38 @@
 <div class="main-content">
   <div class="topbar">
     <button class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
-    <div class="topbar-title" id="page_title">Dashboard</div>
+    <div class="topbar-breadcrumb">
+      <span class="bc-prefix">Console</span>
+      <span class="bc-sep">/</span>
+      <span class="topbar-title" id="page_title">Dashboard</span>
+    </div>
 
     <!-- COMMAND PALETTE TRIGGER (Ctrl+K) -->
     <button class="cmd-palette-btn" onclick="openCommandPalette()" title="Open Command Palette (Ctrl+K / Cmd+K)">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-      <span>Search or Command...</span>
-      <kbd>Ctrl+K</kbd>
+      <span>Search or command...</span>
+      <kbd class="kbd-pill">Ctrl+K</kbd>
     </button>
 
     <div class="spacer"></div>
     
     <!-- DEMO CONTROLS -->
-    <div class="demo-controls" style="display:flex;align-items:center;gap:10px;margin-right:14px">
-      <span id="demo_status_badge" class="tag t-ok" style="font-size:11px;font-weight:700;padding:4px 10px;letter-spacing:0.5px">● STREAMING</span>
-      <button class="btn btn-sm" id="btn_demo_start" onclick="startDemo()" style="background:#10b981;color:#fff;border:none;padding:5px 12px;font-size:12px;font-weight:600;border-radius:6px;cursor:pointer;display:none">
-        ▶ Start Demo
+    <div class="demo-controls">
+      <span id="demo_status_badge" class="tag t-ok">● STREAMING</span>
+      <button class="btn btn-sm btn-success" id="btn_demo_start" onclick="startDemo()" style="display:none">
+        Start Demo
       </button>
-      <button class="btn btn-sm" id="btn_demo_stop" onclick="stopDemo()" style="background:#ef4444;color:#fff;border:none;padding:5px 12px;font-size:12px;font-weight:600;border-radius:6px;cursor:pointer">
-        ⏹ Stop Demo
+      <button class="btn btn-sm btn-ghost" id="btn_demo_stop" onclick="stopDemo()">
+        Pause Stream
       </button>
-      <button class="btn btn-sm" id="btn_demo_quick_attack" onclick="launchAttack('syn')" style="background:#f59e0b;color:#111;border:none;padding:5px 12px;font-size:12px;font-weight:600;border-radius:6px;cursor:pointer">
+      <button class="btn btn-sm btn-accent" id="btn_demo_quick_attack" onclick="launchAttack('syn')">
         ⚡ Inject Attack
       </button>
     </div>
 
     <span class="mode-badge demo" id="mode_badge">DEMO</span>
     <div class="clock" id="clock">--:--:--</div>
+    <div class="user-avatar" title="SOC Security Operator">🛡️</div>
   </div>
 
   <div class="content">
@@ -372,253 +392,155 @@
     <!-- ==================== PAGE: DASHBOARD ==================== -->
     <div class="page active" id="page_dashboard">
 
-      <!-- Enterprise Phase 11: SOC Executive SLA & Governance Strip -->
-      <div class="panel fade-in soc-governance-panel" style="margin-bottom:16px;border-left:4px solid #10b981;background:linear-gradient(135deg, rgba(16,185,129,0.04) 0%, rgba(15,23,42,0.6) 100%)">
-        <div class="panel-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
-          <div>
-            <div class="panel-title" style="display:flex;align-items:center;gap:8px">
-              <span style="color:#10b981;font-size:18px">🛡️</span>
-              Enterprise SOC Governance &amp; Fleet SLA Telemetry
+      <!-- Vaulto Hero Banner: Total Protection Index & Executive Governance Strip -->
+      <div class="vaulto-hero-panel fade-in soc-governance-panel">
+        <div class="vaulto-hero-main">
+          <div class="vaulto-hero-left">
+            <div class="vaulto-hero-label">TOTAL SECURITY POSTURE</div>
+            <div class="vaulto-hero-balance-row">
+              <div class="vaulto-hero-number" id="soc_immunity_val">100.0%</div>
+              <span id="soc_immunity_badge" class="tag t-ok hero-tag">OPTIMAL</span>
             </div>
-            <div class="panel-subtitle">Real-Time SecOps KPIs · NIS2 &amp; EU CRA Aligned · Cryptographic Audit Ledger Status</div>
+            
+            <div class="vaulto-hero-submetrics">
+              <div class="submetric-item">
+                <span class="submetric-label">MTTD (Detection):</span>
+                <span id="soc_mttd_val" class="submetric-val">14.2 ms</span>
+                <span id="soc_mttd_badge" class="tag-micro t-ok">SLA MET</span>
+              </div>
+              <div class="submetric-sep">•</div>
+              <div class="submetric-item">
+                <span class="submetric-label">MTTR (Response):</span>
+                <span id="soc_mttr_val" class="submetric-val">3.8 ms</span>
+                <span id="soc_mttr_badge" class="tag-micro t-ok">SLA MET</span>
+              </div>
+              <div class="submetric-sep">•</div>
+              <div class="submetric-item">
+                <span class="submetric-label">Audit:</span>
+                <span id="soc_audit_val" class="submetric-val">SHA-256 Chain</span>
+                <span id="soc_audit_chain_badge" class="tag-micro t-ok">VERIFIED</span>
+              </div>
+              <div class="submetric-sep">•</div>
+              <div class="submetric-item">
+                <span class="submetric-label">XDP Drops:</span>
+                <span id="soc_xdp_val" class="submetric-val">0 pkts</span>
+                <span id="soc_xdp_status_badge" class="tag-micro t-info">NIC DRIVER</span>
+              </div>
+            </div>
+            <div class="vaulto-hero-notes">
+              <span id="soc_immunity_sub">Edge Nodes + Drift + Audit</span>
+              <span class="submetric-sep">•</span>
+              <span id="soc_blocks_sub">Active blocks: 0</span>
+            </div>
           </div>
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <button class="btn btn-sm btn-report-export" onclick="exportExecutiveReport('html')" id="btn_export_soc_html" title="Open Interactive Print-Ready Executive Report" style="background:linear-gradient(135deg,#059669,#10b981);color:#fff;border:none;cursor:pointer;padding:7px 14px;border-radius:6px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px">
-              <span>📄</span> Export Executive SOC Report
+
+          <div class="vaulto-hero-actions">
+            <button class="btn btn-accent btn-hero-primary btn-report-export" onclick="exportExecutiveReport('html')" id="btn_export_soc_html" title="Open Interactive Print-Ready Executive Report">
+              <span>📄</span> Export Executive Report
             </button>
-            <button class="btn btn-sm btn-report-export" onclick="exportExecutiveReport('json')" id="btn_export_soc_json" title="Download Machine-Readable JSON Report" style="background:#1e293b;color:#94a3b8;border:1px solid #334155;cursor:pointer;padding:7px 10px;border-radius:6px;font-size:12px;font-weight:600">
-              JSON
-            </button>
-            <button class="btn btn-sm btn-report-export" onclick="exportExecutiveReport('markdown')" id="btn_export_soc_md" title="Download Markdown Report" style="background:#1e293b;color:#94a3b8;border:1px solid #334155;cursor:pointer;padding:7px 10px;border-radius:6px;font-size:12px;font-weight:600">
-              MD
-            </button>
-          </div>
-        </div>
-
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:14px">
-          <div class="metric-card soc-kpi-card" style="padding:12px 14px;background:rgba(15,23,42,0.7);border:1px solid #334155;border-radius:8px">
-            <div style="display:flex;justify-content:space-between;align-items:center">
-              <span style="font-size:11px;color:var(--text3);text-transform:uppercase;font-weight:700">MTTD (Detection)</span>
-              <span id="soc_mttd_badge" style="font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(16,185,129,0.2);color:#10b981;font-weight:700">SLA MET</span>
+            <div class="vaulto-hero-secondary-btns">
+              <button class="btn btn-sm btn-subtle btn-report-export" onclick="exportExecutiveReport('json')" id="btn_export_soc_json" title="Download Machine-Readable JSON Report">
+                JSON
+              </button>
+              <button class="btn btn-sm btn-subtle btn-report-export" onclick="exportExecutiveReport('markdown')" id="btn_export_soc_md" title="Download Markdown Report">
+                Markdown
+              </button>
             </div>
-            <div id="soc_mttd_val" style="font-size:22px;font-weight:800;color:#38bdf8;margin:4px 0">14.2 ms</div>
-            <div style="font-size:11px;color:var(--text3)">Target: &lt; 100 ms (Rolling Avg)</div>
-          </div>
-
-          <div class="metric-card soc-kpi-card" style="padding:12px 14px;background:rgba(15,23,42,0.7);border:1px solid #334155;border-radius:8px">
-            <div style="display:flex;justify-content:space-between;align-items:center">
-              <span style="font-size:11px;color:var(--text3);text-transform:uppercase;font-weight:700">MTTR (Response)</span>
-              <span id="soc_mttr_badge" style="font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(16,185,129,0.2);color:#10b981;font-weight:700">SLA MET</span>
-            </div>
-            <div id="soc_mttr_val" style="font-size:22px;font-weight:800;color:#10b981;margin:4px 0">3.8 ms</div>
-            <div style="font-size:11px;color:var(--text3)">Target: &lt; 50 ms (eBPF / Netsh)</div>
-          </div>
-
-          <div class="metric-card soc-kpi-card" style="padding:12px 14px;background:rgba(15,23,42,0.7);border:1px solid #334155;border-radius:8px">
-            <div style="display:flex;justify-content:space-between;align-items:center">
-              <span style="font-size:11px;color:var(--text3);text-transform:uppercase;font-weight:700">Audit Ledger</span>
-              <span id="soc_audit_chain_badge" style="font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(16,185,129,0.2);color:#10b981;font-weight:700">VERIFIED</span>
-            </div>
-            <div id="soc_audit_val" style="font-size:18px;font-weight:800;color:#10b981;margin:4px 0">SHA-256 Chain</div>
-            <div style="font-size:11px;color:var(--text3)">Tamper-Evident Merkle Blocks</div>
-          </div>
-
-          <div class="metric-card soc-kpi-card" style="padding:12px 14px;background:rgba(15,23,42,0.7);border:1px solid #334155;border-radius:8px">
-            <div style="display:flex;justify-content:space-between;align-items:center">
-              <span style="font-size:11px;color:var(--text3);text-transform:uppercase;font-weight:700">Fleet Immunity</span>
-              <span id="soc_immunity_badge" style="font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(16,185,129,0.2);color:#10b981;font-weight:700">OPTIMAL</span>
-            </div>
-            <div id="soc_immunity_val" style="font-size:22px;font-weight:800;color:#10b981;margin:4px 0">100.0%</div>
-            <div style="font-size:11px;color:var(--text3)" id="soc_immunity_sub">Edge Nodes + Drift + Audit</div>
-          </div>
-
-          <div class="metric-card soc-kpi-card" style="padding:12px 14px;background:rgba(15,23,42,0.7);border:1px solid #334155;border-radius:8px">
-            <div style="display:flex;justify-content:space-between;align-items:center">
-              <span style="font-size:11px;color:var(--text3);text-transform:uppercase;font-weight:700">Hardware XDP Drops</span>
-              <span id="soc_xdp_status_badge" style="font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(56,189,248,0.2);color:#38bdf8;font-weight:700">NIC DRIVER</span>
-            </div>
-            <div id="soc_xdp_val" style="font-size:22px;font-weight:800;color:#38bdf8;margin:4px 0">0 pkts</div>
-            <div style="font-size:11px;color:var(--text3)" id="soc_blocks_sub">Active blocks: 0</div>
           </div>
         </div>
       </div>
 
-      <!-- Enterprise Phase 11: MITRE ATT&CK® Live Matrix Banner -->
-      <div class="panel fade-in mitre-matrix-panel" style="margin-bottom:16px;border-left:4px solid #f59e0b">
-        <div class="panel-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-          <div>
-            <div class="panel-title" style="display:flex;align-items:center;gap:8px">
-              <span style="color:#f59e0b;font-size:18px">🎯</span>
-              MITRE ATT&amp;CK® Live Threat Matrix &amp; Kill-Chain Progression
+      <!-- Vaulto Currency Cards: Stats Overview (Last 60 Minutes) -->
+      <div class="section-title">Telemetry Overview — Last 60 Minutes</div>
+      <div class="stats vaulto-stats-row">
+        <div class="stat vaulto-card">
+          <div class="vaulto-card-head">
+            <div class="vaulto-asset-info">
+              <span class="vaulto-asset-icon icon-cyan">📊</span>
+              <div>
+                <div class="vaulto-asset-code">EVENTS</div>
+                <div class="label">Total Scored</div>
+              </div>
             </div>
-            <div class="panel-subtitle">Enterprise &amp; ICS/IoT Threat Framework Taxonomy Mapping · Live Active Threat Counts</div>
+            <span class="vaulto-card-badge tag-micro t-info">FLOW</span>
           </div>
-          <div style="font-size:11px;color:var(--text3);display:flex;gap:12px;align-items:center">
-            <span>Mapped Threats: <b id="mitre_total_mapped" style="color:#f8fafc">0</b></span>
-            <span>Active Tactics: <b id="mitre_active_tactics" style="color:#f59e0b">0 / 6</b></span>
-          </div>
-        </div>
-
-        <div class="mitre-matrix-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-top:14px">
-          <!-- TA0043: Reconnaissance -->
-          <div class="mitre-tactic-col" id="mitre_col_TA0043" style="border-top:3px solid #38bdf8;background:rgba(15,23,42,0.6);border-radius:6px;padding:10px;border-left:1px solid #334155;border-right:1px solid #334155;border-bottom:1px solid #334155">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-              <span style="font-size:10px;font-weight:700;color:#38bdf8">TA0043</span>
-              <span class="mitre-badge" id="mitre_cnt_TA0043" style="font-size:10px;padding:1px 6px;border-radius:10px;background:#1e293b;color:#94a3b8;font-weight:700">0</span>
-            </div>
-            <div style="font-size:12px;font-weight:700;color:#f8fafc;margin-bottom:6px">Reconnaissance</div>
-            <div id="mitre_tech_TA0043" style="font-size:10px;color:var(--text3);line-height:1.4">No active threats</div>
-          </div>
-
-          <!-- TA0001: Initial Access -->
-          <div class="mitre-tactic-col" id="mitre_col_TA0001" style="border-top:3px solid #f59e0b;background:rgba(15,23,42,0.6);border-radius:6px;padding:10px;border-left:1px solid #334155;border-right:1px solid #334155;border-bottom:1px solid #334155">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-              <span style="font-size:10px;font-weight:700;color:#f59e0b">TA0001</span>
-              <span class="mitre-badge" id="mitre_cnt_TA0001" style="font-size:10px;padding:1px 6px;border-radius:10px;background:#1e293b;color:#94a3b8;font-weight:700">0</span>
-            </div>
-            <div style="font-size:12px;font-weight:700;color:#f8fafc;margin-bottom:6px">Initial Access</div>
-            <div id="mitre_tech_TA0001" style="font-size:10px;color:var(--text3);line-height:1.4">No active threats</div>
-          </div>
-
-          <!-- TA0002: Execution -->
-          <div class="mitre-tactic-col" id="mitre_col_TA0002" style="border-top:3px solid #ec4899;background:rgba(15,23,42,0.6);border-radius:6px;padding:10px;border-left:1px solid #334155;border-right:1px solid #334155;border-bottom:1px solid #334155">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-              <span style="font-size:10px;font-weight:700;color:#ec4899">TA0002</span>
-              <span class="mitre-badge" id="mitre_cnt_TA0002" style="font-size:10px;padding:1px 6px;border-radius:10px;background:#1e293b;color:#94a3b8;font-weight:700">0</span>
-            </div>
-            <div style="font-size:12px;font-weight:700;color:#f8fafc;margin-bottom:6px">Execution</div>
-            <div id="mitre_tech_TA0002" style="font-size:10px;color:var(--text3);line-height:1.4">No active threats</div>
-          </div>
-
-          <!-- TA0006: Credential Access -->
-          <div class="mitre-tactic-col" id="mitre_col_TA0006" style="border-top:3px solid #a855f7;background:rgba(15,23,42,0.6);border-radius:6px;padding:10px;border-left:1px solid #334155;border-right:1px solid #334155;border-bottom:1px solid #334155">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-              <span style="font-size:10px;font-weight:700;color:#a855f7">TA0006</span>
-              <span class="mitre-badge" id="mitre_cnt_TA0006" style="font-size:10px;padding:1px 6px;border-radius:10px;background:#1e293b;color:#94a3b8;font-weight:700">0</span>
-            </div>
-            <div style="font-size:12px;font-weight:700;color:#f8fafc;margin-bottom:6px">Credential Access</div>
-            <div id="mitre_tech_TA0006" style="font-size:10px;color:var(--text3);line-height:1.4">No active threats</div>
-          </div>
-
-          <!-- TA0011: Command and Control -->
-          <div class="mitre-tactic-col" id="mitre_col_TA0011" style="border-top:3px solid #ef4444;background:rgba(15,23,42,0.6);border-radius:6px;padding:10px;border-left:1px solid #334155;border-right:1px solid #334155;border-bottom:1px solid #334155">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-              <span style="font-size:10px;font-weight:700;color:#ef4444">TA0011</span>
-              <span class="mitre-badge" id="mitre_cnt_TA0011" style="font-size:10px;padding:1px 6px;border-radius:10px;background:#1e293b;color:#94a3b8;font-weight:700">0</span>
-            </div>
-            <div style="font-size:12px;font-weight:700;color:#f8fafc;margin-bottom:6px">Command &amp; Control</div>
-            <div id="mitre_tech_TA0011" style="font-size:10px;color:var(--text3);line-height:1.4">No active threats</div>
-          </div>
-
-          <!-- TA0040: Impact -->
-          <div class="mitre-tactic-col" id="mitre_col_TA0040" style="border-top:3px solid #dc2626;background:rgba(15,23,42,0.6);border-radius:6px;padding:10px;border-left:1px solid #334155;border-right:1px solid #334155;border-bottom:1px solid #334155">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-              <span style="font-size:10px;font-weight:700;color:#dc2626">TA0040</span>
-              <span class="mitre-badge" id="mitre_cnt_TA0040" style="font-size:10px;padding:1px 6px;border-radius:10px;background:#1e293b;color:#94a3b8;font-weight:700">0</span>
-            </div>
-            <div style="font-size:12px;font-weight:700;color:#f8fafc;margin-bottom:6px">Impact (Floods/DDoS)</div>
-            <div id="mitre_tech_TA0040" style="font-size:10px;color:var(--text3);line-height:1.4">No active threats</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- System Status -->
-      <div class="section-title">System Status</div>
-      <div class="panel fade-in">
-        <div class="model-info" id="model_info">
-          <div class="mi"><div class="mi-label">Model</div><div class="mi-val" id="mi_type">LightGBM</div></div>
-          <div class="mi"><div class="mi-label">Version</div><div class="mi-val" id="mi_ver">-</div></div>
-          <div class="mi"><div class="mi-label">Features</div><div class="mi-val" id="mi_feat">13</div></div>
-          <div class="mi"><div class="mi-label">Train ROC-AUC</div><div class="mi-val" id="mi_auc" style="color:var(--green)">-</div></div>
-          <div class="mi"><div class="mi-label">Threshold</div><div class="mi-val" id="mi_thr">-</div></div>
-          <div class="mi"><div class="mi-label">Ensemble</div><div class="mi-val" id="mi_ens">-</div></div>
-        </div>
-      </div>
-
-      <!-- Fleet Federated Learning & Drift Status Card (Phase 6) -->
-      <div class="panel fade-in" style="margin-top:16px;border-left:4px solid #6366f1">
-        <div class="panel-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-          <div>
-            <div class="panel-title" style="display:flex;align-items:center;gap:8px">
-              <span style="color:#6366f1">🌐</span>
-              Fleet Federated Learning & Feature Drift Monitor
-            </div>
-            <div class="panel-subtitle">Distributed Edge FedAvg · Differential Privacy Protected · Continuous Online Drift Tracking</div>
-          </div>
-          <button class="btn btn-sm" onclick="triggerFederatedRound()" id="btn_fed_round" style="background:#4f46e5;color:#fff;border:none;cursor:pointer;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600">
-            🔄 Run FedAvg Round
-          </button>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:12px">
-          <div class="metric-card" style="padding:10px 14px">
-            <div style="font-size:11px;color:var(--text3);text-transform:uppercase;font-weight:600">Global FedAvg Round</div>
-            <div id="fed_round_num" style="font-size:18px;font-weight:800;color:#6366f1">Round 0</div>
-            <div id="fed_model_hash" style="font-size:11px;color:var(--text3);font-family:monospace">hash: -</div>
-          </div>
-          <div class="metric-card" style="padding:10px 14px">
-            <div style="font-size:11px;color:var(--text3);text-transform:uppercase;font-weight:600">Online Edge Gateways</div>
-            <div id="fed_node_count" style="font-size:18px;font-weight:800;color:#10b981">4 Active Nodes</div>
-            <div style="font-size:11px;color:var(--text3)">Diff Privacy (DP): Enabled</div>
-          </div>
-          <div class="metric-card" style="padding:10px 14px">
-            <div style="font-size:11px;color:var(--text3);text-transform:uppercase;font-weight:600">Fleet Feature Drift (PSI)</div>
-            <div id="fed_drift_badge" style="font-size:15px;font-weight:800;color:#10b981">🟢 Fleet Stable</div>
-            <div id="fed_drift_psi" style="font-size:11px;color:var(--text3)">Mean PSI: 0.000</div>
-          </div>
-          <div class="metric-card" style="padding:10px 14px">
-            <div style="font-size:11px;color:var(--text3);text-transform:uppercase;font-weight:600">Continual Adaptation</div>
-            <div id="fed_recommendation" style="font-size:13px;font-weight:700;color:#f8fafc">FLEET_STABLE</div>
-            <div id="fed_last_sync" style="font-size:11px;color:var(--text3)">Auto-continual learning</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Stats Cards -->
-      <div class="section-title">Overview — Last 60 Minutes</div>
-      <div class="stats">
-        <div class="stat">
-          <div class="icon">📊</div>
-          <div class="label">Total Events</div>
           <div class="val" id="mt_total">0</div>
-          <div class="sub">Scored windows</div>
+          <div class="sub">Continuous sliding windows</div>
           <div class="spark" id="spark_total"></div>
         </div>
-        <div class="stat">
-          <div class="icon">🚨</div>
-          <div class="label">Attacks Detected</div>
+
+        <div class="stat vaulto-card">
+          <div class="vaulto-card-head">
+            <div class="vaulto-asset-info">
+              <span class="vaulto-asset-icon icon-red">🚨</span>
+              <div>
+                <div class="vaulto-asset-code">ATTACKS</div>
+                <div class="label">Threats Detected</div>
+              </div>
+            </div>
+            <span class="vaulto-card-badge tag-micro t-bad">ALERT</span>
+          </div>
           <div class="val" id="mt_attacks" style="color:var(--red)">0</div>
-          <div class="sub">Above threshold</div>
+          <div class="sub">Above decision threshold</div>
           <div class="spark" id="spark_attacks"></div>
         </div>
-        <div class="stat">
-          <div class="icon">🛑</div>
-          <div class="label">IPs Blocked</div>
+
+        <div class="stat vaulto-card">
+          <div class="vaulto-card-head">
+            <div class="vaulto-asset-info">
+              <span class="vaulto-asset-icon icon-amber">🛑</span>
+              <div>
+                <div class="vaulto-asset-code">BLOCKS</div>
+                <div class="label">IPs Quarantined</div>
+              </div>
+            </div>
+            <span class="vaulto-card-badge tag-micro t-warn">ACTIVE</span>
+          </div>
           <div class="val" id="mt_blocks" style="color:var(--amber)">0</div>
-          <div class="sub">Firewall actions</div>
+          <div class="sub">Active firewall &amp; eBPF drops</div>
           <div class="spark" id="spark_blocks"></div>
         </div>
-        <div class="stat">
-          <div class="icon">✅</div>
-          <div class="label">Detection Rate</div>
+
+        <div class="stat vaulto-card">
+          <div class="vaulto-card-head">
+            <div class="vaulto-asset-info">
+              <span class="vaulto-asset-icon icon-green">✅</span>
+              <div>
+                <div class="vaulto-asset-code">PRECISION</div>
+                <div class="label">Detection Rate</div>
+              </div>
+            </div>
+            <span class="vaulto-card-badge tag-micro t-ok">BENCHMARK</span>
+          </div>
           <div class="val" id="mt_rate" style="color:var(--green)">-</div>
-          <div class="sub">Attack / Total</div>
+          <div class="sub">Attack vs Benign ratio</div>
         </div>
       </div>
 
-      <!-- Threat Gauge + Score Chart -->
-      <div class="section-title">Threat Level</div>
+      <!-- Main Charts Row (Vaulto Line Chart + Threat Assessment Gauge) -->
+      <div class="section-title">Threat Assessment &amp; Anomaly Curve</div>
       <div class="charts-row">
-        <div class="panel fade-in">
+        <div class="panel fade-in vaulto-panel-chart">
           <div class="panel-header">
             <div class="panel-title">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-              Anomaly Score Timeline
+              <span>Anomaly Score Timeline</span>
             </div>
-            <div class="panel-subtitle"><span style="color:#3b82f6">━</span> Score &nbsp;<span style="color:#f59e0b">┅</span> Threshold &nbsp;· Last 100</div>
+            <div class="panel-subtitle">
+              <span style="color:var(--accent)">━</span> Anomaly Score &nbsp;&nbsp;
+              <span style="color:var(--amber)">┅</span> Decision Threshold &nbsp;&nbsp;· Last 100 Scored Windows
+            </div>
           </div>
           <div class="chart-wrap"><canvas id="scoreChart"></canvas></div>
         </div>
-        <div class="panel fade-in">
+
+        <div class="panel fade-in vaulto-panel-gauge">
+          <div class="panel-header">
+            <div class="panel-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              <span>Threat Level Gauge</span>
+            </div>
+          </div>
           <div class="gauge-wrap">
             <svg class="gauge-svg" viewBox="0 0 200 120" id="threat_gauge">
               <defs>
@@ -627,7 +549,7 @@
                 <linearGradient id="gg_high" x1="0%" y1="0%" x2="100%"><stop offset="0%" stop-color="#ef4444"/><stop offset="100%" stop-color="#f87171"/></linearGradient>
               </defs>
               <!-- Background arc -->
-              <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="rgba(99,130,190,0.1)" stroke-width="12" stroke-linecap="round"/>
+              <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="12" stroke-linecap="round"/>
               <!-- Active arc -->
               <path id="gauge_arc" d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="url(#gg_low)" stroke-width="12" stroke-linecap="round" stroke-dasharray="0 251" style="transition: stroke-dasharray 1s ease, stroke 0.5s"/>
               <!-- Needle -->
@@ -640,14 +562,93 @@
         </div>
       </div>
 
-      <!-- Attack Distribution + Top Attackers -->
-      <div class="section-title">Intelligence</div>
+      <!-- MITRE ATT&CK Matrix Card -->
+      <div class="panel fade-in mitre-matrix-panel" style="margin-top:20px;border-left:4px solid var(--amber)">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">
+              <span style="color:var(--amber)">🎯</span>
+              <span>MITRE ATT&amp;CK® Live Threat Matrix &amp; Kill-Chain Progression</span>
+            </div>
+            <div class="panel-subtitle">Enterprise &amp; ICS/IoT Threat Framework Taxonomy Mapping · Live Active Threat Counts</div>
+          </div>
+          <div class="mitre-counts-summary">
+            <span>Mapped Threats: <b id="mitre_total_mapped">0</b></span>
+            <span>Active Tactics: <b id="mitre_active_tactics">0 / 6</b></span>
+          </div>
+        </div>
+
+        <div class="mitre-matrix-grid">
+          <!-- TA0043: Reconnaissance -->
+          <div class="mitre-tactic-col" id="mitre_col_TA0043">
+            <div class="mitre-tactic-top">
+              <span class="mitre-tactic-code accent-cyan">TA0043</span>
+              <span class="mitre-badge" id="mitre_cnt_TA0043">0</span>
+            </div>
+            <div class="mitre-tactic-name">Reconnaissance</div>
+            <div id="mitre_tech_TA0043" class="mitre-tactic-tech">No active threats</div>
+          </div>
+
+          <!-- TA0001: Initial Access -->
+          <div class="mitre-tactic-col" id="mitre_col_TA0001">
+            <div class="mitre-tactic-top">
+              <span class="mitre-tactic-code accent-amber">TA0001</span>
+              <span class="mitre-badge" id="mitre_cnt_TA0001">0</span>
+            </div>
+            <div class="mitre-tactic-name">Initial Access</div>
+            <div id="mitre_tech_TA0001" class="mitre-tactic-tech">No active threats</div>
+          </div>
+
+          <!-- TA0002: Execution -->
+          <div class="mitre-tactic-col" id="mitre_col_TA0002">
+            <div class="mitre-tactic-top">
+              <span class="mitre-tactic-code accent-pink">TA0002</span>
+              <span class="mitre-badge" id="mitre_cnt_TA0002">0</span>
+            </div>
+            <div class="mitre-tactic-name">Execution</div>
+            <div id="mitre_tech_TA0002" class="mitre-tactic-tech">No active threats</div>
+          </div>
+
+          <!-- TA0006: Credential Access -->
+          <div class="mitre-tactic-col" id="mitre_col_TA0006">
+            <div class="mitre-tactic-top">
+              <span class="mitre-tactic-code accent-purple">TA0006</span>
+              <span class="mitre-badge" id="mitre_cnt_TA0006">0</span>
+            </div>
+            <div class="mitre-tactic-name">Credential Access</div>
+            <div id="mitre_tech_TA0006" class="mitre-tactic-tech">No active threats</div>
+          </div>
+
+          <!-- TA0011: Command and Control -->
+          <div class="mitre-tactic-col" id="mitre_col_TA0011">
+            <div class="mitre-tactic-top">
+              <span class="mitre-tactic-code accent-red">TA0011</span>
+              <span class="mitre-badge" id="mitre_cnt_TA0011">0</span>
+            </div>
+            <div class="mitre-tactic-name">Command &amp; Control</div>
+            <div id="mitre_tech_TA0011" class="mitre-tactic-tech">No active threats</div>
+          </div>
+
+          <!-- TA0040: Impact -->
+          <div class="mitre-tactic-col" id="mitre_col_TA0040">
+            <div class="mitre-tactic-top">
+              <span class="mitre-tactic-code accent-red-dark">TA0040</span>
+              <span class="mitre-badge" id="mitre_cnt_TA0040">0</span>
+            </div>
+            <div class="mitre-tactic-name">Impact (Floods/DDoS)</div>
+            <div id="mitre_tech_TA0040" class="mitre-tactic-tech">No active threats</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Intelligence & Top Attackers Grid -->
+      <div class="section-title">Attack Intelligence &amp; Active Adversaries</div>
       <div class="grid-2">
         <div class="panel fade-in">
           <div class="panel-header">
             <div class="panel-title">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>
-              Attack Distribution
+              <span>Attack Distribution</span>
             </div>
           </div>
           <div class="pie-wrap"><canvas id="pieChart"></canvas></div>
@@ -656,71 +657,125 @@
           <div class="panel-header">
             <div class="panel-title">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-              Top Attackers
+              <span>Top Attackers (Adversary Telemetry)</span>
             </div>
           </div>
           <div id="top_attackers">
-            <div style="text-align:center;color:var(--text3);padding:20px;font-size:13px">Loading...</div>
+            <div style="text-align:center;color:var(--text3);padding:24px;font-size:13px">Loading adversary profiles...</div>
           </div>
         </div>
       </div>
 
-      <!-- Detection Breakdown -->
+      <!-- Detection Breakdown Chips -->
       <div class="section-title">Detection Breakdown</div>
-      <div class="panel fade-in" style="display:flex;gap:24px;flex-wrap:wrap">
-        <div style="flex:1;min-width:220px">
-          <div style="font-size:11px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Canonical Taxonomies</div>
+      <div class="panel fade-in breakdown-panel">
+        <div class="breakdown-col">
+          <div class="breakdown-label">Canonical Taxonomies</div>
           <div id="category_chips" class="chips"><span class="chip">Loading...</span></div>
         </div>
-        <div style="flex:1;min-width:220px">
-          <div style="font-size:11px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Raw Attack Classes</div>
+        <div class="breakdown-col">
+          <div class="breakdown-label">Raw Attack Classes</div>
           <div id="class_chips" class="chips"><span class="chip">Loading...</span></div>
         </div>
-        <div style="flex:1;min-width:200px">
-          <div style="font-size:11px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Block Actions</div>
+        <div class="breakdown-col">
+          <div class="breakdown-label">Block Actions</div>
           <div id="block_chips" class="chips"><span class="chip">Loading...</span></div>
+        </div>
+      </div>
+
+      <!-- System Status Strip -->
+      <div class="section-title">System Status &amp; Model Metadata</div>
+      <div class="panel fade-in">
+        <div class="model-info" id="model_info">
+          <div class="mi"><div class="mi-label">Model</div><div class="mi-val" id="mi_type">LightGBM</div></div>
+          <div class="mi"><div class="mi-label">Version</div><div class="mi-val" id="mi_ver">-</div></div>
+          <div class="mi"><div class="mi-label">Features</div><div class="mi-val" id="mi_feat">13</div></div>
+          <div class="mi"><div class="mi-label">Train ROC-AUC</div><div class="mi-val" id="mi_auc" style="color:var(--green)">-</div></div>
+          <div class="mi"><div class="mi-label">Threshold</div><div class="mi-val" id="mi_thr">-</div></div>
+          <div class="mi"><div class="mi-label">Ensemble</div><div class="mi-val" id="mi_ens">-</div></div>
+        </div>
+      </div>
+
+      <!-- Fleet Federated Learning & Drift Status Card -->
+      <div class="panel fade-in" style="margin-top:20px;border-left:4px solid var(--accent)">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">
+              <span style="color:var(--accent)">🌐</span>
+              <span>Fleet Federated Learning &amp; Feature Drift Monitor</span>
+            </div>
+            <div class="panel-subtitle">Distributed Edge FedAvg · Differential Privacy Protected · Continuous Online Drift Tracking</div>
+          </div>
+          <button class="btn btn-sm btn-primary-accent" onclick="triggerFederatedRound()" id="btn_fed_round">
+            🔄 Run FedAvg Round
+          </button>
+        </div>
+        <div class="federated-metrics-grid">
+          <div class="metric-card">
+            <div class="fed-label">Global FedAvg Round</div>
+            <div id="fed_round_num" class="fed-val accent-accent">Round 0</div>
+            <div id="fed_model_hash" class="fed-sub monospace">hash: -</div>
+          </div>
+          <div class="metric-card">
+            <div class="fed-label">Online Edge Gateways</div>
+            <div id="fed_node_count" class="fed-val accent-green">4 Active Nodes</div>
+            <div class="fed-sub">Diff Privacy (DP): Enabled</div>
+          </div>
+          <div class="metric-card">
+            <div class="fed-label">Fleet Feature Drift (PSI)</div>
+            <div id="fed_drift_badge" class="fed-val accent-green">🟢 Fleet Stable</div>
+            <div id="fed_drift_psi" class="fed-sub">Mean PSI: 0.000</div>
+          </div>
+          <div class="metric-card">
+            <div class="fed-label">Continual Adaptation</div>
+            <div id="fed_recommendation" class="fed-val">FLEET_STABLE</div>
+            <div id="fed_last_sync" class="fed-sub">Auto-continual learning</div>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- ==================== PAGE: NETWORK MAP ==================== -->
     <div class="page" id="page_network" style="display:none">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
-        <div class="section-title" style="margin-bottom:0">Live Network Topology & Device Telemetry</div>
-        <div style="display:flex;gap:8px;align-items:center">
+      <div class="page-header-row">
+        <div>
+          <div class="section-title" style="margin-bottom:0">Live Network Topology &amp; Device Telemetry</div>
+          <div class="page-subtitle">Real-time VLAN microsegmentation, live host states, and hardware eBPF drops</div>
+        </div>
+        <div class="page-header-actions">
           <div class="chips" style="margin:0">
-            <span class="chip" id="topo_filter_all" style="cursor:pointer;background:var(--primary);color:#fff;font-weight:700" onclick="setTopoFilter('all')">All</span>
-            <span class="chip" id="topo_filter_iot" style="cursor:pointer" onclick="setTopoFilter('iot')">📡 IoT Only</span>
-            <span class="chip" id="topo_filter_it" style="cursor:pointer" onclick="setTopoFilter('it')">💻 IT Only</span>
-            <span class="chip" id="topo_filter_threats" style="cursor:pointer" onclick="setTopoFilter('threats')">🚨 Threat Nodes</span>
+            <span class="chip chip-active" id="topo_filter_all" onclick="setTopoFilter('all')">All</span>
+            <span class="chip" id="topo_filter_iot" onclick="setTopoFilter('iot')">📡 IoT Only</span>
+            <span class="chip" id="topo_filter_it" onclick="setTopoFilter('it')">💻 IT Only</span>
+            <span class="chip" id="topo_filter_threats" onclick="setTopoFilter('threats')">🚨 Threat Nodes</span>
           </div>
-          <button class="btn btn-sm" onclick="loadTopology()" style="background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--text2);padding:6px 14px;border-radius:6px;cursor:pointer;font-weight:600">
+          <button class="btn btn-sm btn-subtle" onclick="loadTopology()">
             🔄 Refresh
           </button>
         </div>
       </div>
 
       <!-- Topology Summary Metrics Strip -->
-      <div style="display:grid;grid-template-columns:repeat(5, 1fr);gap:10px;margin-bottom:14px">
-        <div class="metric-card" style="padding:10px 14px">
-          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;font-weight:600">Total Devices</div>
-          <div id="topo_count_total" style="font-size:18px;font-weight:800;color:#f8fafc">12</div>
+      <div class="topo-summary-strip">
+        <div class="metric-card">
+          <div class="card-label">Total Devices</div>
+          <div id="topo_count_total" class="card-val">12</div>
         </div>
-        <div class="metric-card" style="padding:10px 14px">
-          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;font-weight:600">IoT Nodes</div>
-          <div id="topo_count_iot" style="font-size:18px;font-weight:800;color:#10b981">6</div>
+        <div class="metric-card">
+          <div class="card-label">IoT Nodes</div>
+          <div id="topo_count_iot" class="card-val accent-green">6</div>
         </div>
-        <div class="metric-card" style="padding:10px 14px">
-          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;font-weight:600">IT Nodes</div>
-          <div id="topo_count_it" style="font-size:18px;font-weight:800;color:#06b6d4">4</div>
+        <div class="metric-card">
+          <div class="card-label">IT Nodes</div>
+          <div id="topo_count_it" class="card-val accent-cyan">4</div>
         </div>
-        <div class="metric-card" style="padding:10px 14px">
-          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;font-weight:600">Grace (Warning)</div>
-          <div id="topo_count_grace" style="font-size:18px;font-weight:800;color:#f59e0b">0</div>
+        <div class="metric-card">
+          <div class="card-label">Grace (Warning)</div>
+          <div id="topo_count_grace" class="card-val accent-amber">0</div>
         </div>
-        <div class="metric-card" style="padding:10px 14px">
-          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;font-weight:600">Quarantined (Blocked)</div>
-          <div id="topo_count_blocked" style="font-size:18px;font-weight:800;color:#ef4444">0</div>
+        <div class="metric-card">
+          <div class="card-label">Quarantined (Blocked)</div>
+          <div id="topo_count_blocked" class="card-val accent-red">0</div>
         </div>
       </div>
 
@@ -728,11 +783,11 @@
         <div class="panel-header">
           <div class="panel-title">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="3"/><circle cx="5" cy="19" r="3"/><circle cx="19" cy="19" r="3"/><line x1="12" y1="8" x2="5" y2="16"/><line x1="12" y1="8" x2="19" y2="16"/></svg>
-            Interactive Device Topology Graph & Subnet Zoning
+            <span>Interactive Device Topology Graph &amp; Subnet Zoning</span>
           </div>
-          <div style="display:flex;gap:6px;align-items:center">
-            <span class="tag t-ok" style="font-size:10px">Zoom / Pan / Drag Active</span>
-            <span class="tag t-info" style="font-size:10px">Hardware eBPF Offload</span>
+          <div class="panel-header-tags">
+            <span class="tag t-ok">Zoom / Pan / Drag Active</span>
+            <span class="tag t-info">Hardware eBPF Offload</span>
           </div>
         </div>
         <div class="topo-canvas-container" id="topo_container">
@@ -747,54 +802,54 @@
 
           <!-- Subnet Zone Legend -->
           <div class="topo-legend-bar">
-            <div class="topo-legend-item"><span class="topo-legend-dot" style="background:#3b82f6;box-shadow:0 0 6px #3b82f6"></span><span>Core Infrastructure</span></div>
-            <div class="topo-legend-item"><span class="topo-legend-dot" style="background:#10b981;box-shadow:0 0 6px #10b981"></span><span>IoT VLAN (192.168.1.0/24)</span></div>
-            <div class="topo-legend-item"><span class="topo-legend-dot" style="background:#06b6d4;box-shadow:0 0 6px #06b6d4"></span><span>Corporate IT (10.0.0.0/16)</span></div>
+            <div class="topo-legend-item"><span class="topo-legend-dot dot-core"></span><span>Core Infrastructure</span></div>
+            <div class="topo-legend-item"><span class="topo-legend-dot dot-iot"></span><span>IoT VLAN (192.168.1.0/24)</span></div>
+            <div class="topo-legend-item"><span class="topo-legend-dot dot-it"></span><span>Corporate IT (10.0.0.0/16)</span></div>
           </div>
 
           <!-- Live Side Drawer for Selected Device -->
           <div class="topo-side-drawer" id="topo_drawer">
             <button class="topo-drawer-close" onclick="closeTopoDrawer()">&times;</button>
-            <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
-              <span id="drawer_dev_icon" style="font-size:32px">📡</span>
+            <div class="drawer-header">
+              <span id="drawer_dev_icon" class="drawer-icon">📡</span>
               <div>
-                <h3 id="drawer_dev_name" style="margin:0;font-size:15px;color:#f8fafc">Device Telemetry</h3>
-                <div id="drawer_dev_ip" style="font-size:12px;font-family:monospace;color:var(--text3);margin-top:2px">192.168.1.100</div>
+                <h3 id="drawer_dev_name">Device Telemetry</h3>
+                <div id="drawer_dev_ip" class="drawer-ip monospace">192.168.1.100</div>
               </div>
             </div>
 
-            <div style="display:flex;gap:6px;margin-bottom:14px">
-              <span id="drawer_dev_state" class="tag t-ok" style="font-size:11px;font-weight:700">BENIGN</span>
-              <span id="drawer_dev_zone" class="tag" style="background:rgba(255,255,255,0.08);color:#94a3b8;font-size:11px">IoT Zone</span>
+            <div class="drawer-tags-row">
+              <span id="drawer_dev_state" class="tag t-ok">BENIGN</span>
+              <span id="drawer_dev_zone" class="tag">IoT Zone</span>
             </div>
 
-            <div style="background:rgba(2,6,23,0.5);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:12px;margin-bottom:14px">
-              <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px">
-                <span style="color:var(--text3)">Throughput</span>
-                <span id="drawer_dev_tp" style="font-family:monospace;font-weight:600;color:#f8fafc">14.2 KB/s</span>
+            <div class="drawer-stats-box">
+              <div class="drawer-stat-line">
+                <span class="stat-label">Throughput</span>
+                <span id="drawer_dev_tp" class="stat-val monospace">14.2 KB/s</span>
               </div>
-              <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px">
-                <span style="color:var(--text3)">Active Connections</span>
-                <span id="drawer_dev_conns" style="font-family:monospace;font-weight:600;color:#f8fafc">4 peers</span>
+              <div class="drawer-stat-line">
+                <span class="stat-label">Active Connections</span>
+                <span id="drawer_dev_conns" class="stat-val monospace">4 peers</span>
               </div>
-              <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px">
-                <span style="color:var(--text3)">Hardware Interface</span>
-                <span id="drawer_dev_iface" style="font-family:monospace;font-weight:600;color:#06b6d4">eth0 (XDP)</span>
+              <div class="drawer-stat-line">
+                <span class="stat-label">Hardware Interface</span>
+                <span id="drawer_dev_iface" class="stat-val monospace accent-cyan">eth0 (XDP)</span>
               </div>
-              <div style="display:flex;justify-content:space-between;font-size:12px">
-                <span style="color:var(--text3)">Threat Probability</span>
-                <span id="drawer_dev_score" style="font-family:monospace;font-weight:700;color:#10b981">0.02</span>
+              <div class="drawer-stat-line">
+                <span class="stat-label">Threat Probability</span>
+                <span id="drawer_dev_score" class="stat-val monospace accent-green">0.02</span>
               </div>
             </div>
 
-            <div style="display:flex;flex-direction:column;gap:8px;margin-top:auto">
-              <button class="btn btn-sm" id="drawer_btn_quarantine" onclick="quarantineCurrentDrawerDevice()" style="background:#ef4444;color:#fff;border:none;padding:9px;border-radius:6px;font-weight:600;cursor:pointer">
+            <div class="drawer-actions-stack">
+              <button class="btn btn-sm btn-danger" id="drawer_btn_quarantine" onclick="quarantineCurrentDrawerDevice()">
                 🚫 Quarantine Host (eBPF Drop)
               </button>
-              <button class="btn btn-sm" id="drawer_btn_unblock" onclick="unblockCurrentDrawerDevice()" style="background:#10b981;color:#fff;border:none;padding:9px;border-radius:6px;font-weight:600;cursor:pointer">
+              <button class="btn btn-sm btn-success" id="drawer_btn_unblock" onclick="unblockCurrentDrawerDevice()">
                 ✅ Restore Host Access
               </button>
-              <button class="btn btn-sm" onclick="openDeviceModalFromDrawer()" style="background:rgba(255,255,255,0.08);color:var(--text2);border:1px solid var(--border);padding:8px;border-radius:6px;font-weight:600;cursor:pointer">
+              <button class="btn btn-sm btn-subtle" onclick="openDeviceModalFromDrawer()">
                 🔍 Deep Telemetry Modal
               </button>
             </div>
@@ -805,15 +860,15 @@
 
     <!-- ==================== PAGE: ANALYTICS ==================== -->
     <div class="page" id="page_analytics" style="display:none">
-      <div class="section-title">Feature Analysis</div>
+      <div class="section-title">Deep Behavioral Feature Analytics</div>
       <div class="grid-2">
         <div class="panel fade-in">
           <div class="panel-header">
             <div class="panel-title">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              Feature Radar
+              <span>Feature Radar Profile</span>
             </div>
-            <div class="panel-subtitle">Latest event feature profile</div>
+            <div class="panel-subtitle">Latest evaluated event signature</div>
           </div>
           <div class="radar-wrap"><canvas id="radarChart"></canvas></div>
         </div>
@@ -821,12 +876,12 @@
           <div class="panel-header">
             <div class="panel-title">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><rect x="7" y="7" width="3" height="3"/><rect x="14" y="7" width="3" height="3"/><rect x="7" y="14" width="3" height="3"/><rect x="14" y="14" width="3" height="3"/></svg>
-              Attack Heatmap (7 Days)
+              <span>Attack Intensity Heatmap (7 Days)</span>
             </div>
-            <div class="panel-subtitle">Hourly attack intensity</div>
+            <div class="panel-subtitle">Hourly distribution of anomalous traffic</div>
           </div>
-          <div id="heatmap_container" style="padding:8px 0">
-            <div style="text-align:center;color:var(--text3);font-size:13px;padding:20px">Loading heatmap...</div>
+          <div id="heatmap_container" style="padding:10px 0">
+            <div style="text-align:center;color:var(--text3);font-size:13px;padding:24px">Loading telemetry heatmap...</div>
           </div>
         </div>
       </div>
@@ -834,88 +889,84 @@
 
     <!-- ==================== PAGE: FLEET & EDGE SENSORS ==================== -->
     <div class="page" id="page_fleet" style="display:none">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+      <div class="page-header-row">
         <div>
-          <div class="section-title" style="margin-bottom:2px">Distributed Fleet Control Plane & Edge Sensors</div>
-          <div style="font-size:12px;color:var(--text3)">Autonomous Edge Gateways • Real-time Hardware XDP Drops • Herd-Immunity Propagation</div>
+          <div class="section-title" style="margin-bottom:2px">Distributed Fleet Control Plane &amp; Edge Gateways</div>
+          <div class="page-subtitle">Autonomous Edge Gateways • Real-time Hardware XDP Drops • Herd-Immunity Propagation</div>
         </div>
-        <div style="display:flex;gap:8px;align-items:center">
-          <button class="btn btn-sm" onclick="simulateEdgeHeartbeat()" style="background:#06b6d4;color:#04151f;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-weight:700">
-            📡 Simulate New Edge Sensor Heartbeat
+        <div class="page-header-actions">
+          <button class="btn btn-sm btn-primary-accent" onclick="simulateEdgeHeartbeat()">
+            📡 Simulate Edge Heartbeat
           </button>
-          <button class="btn btn-sm" onclick="loadFleetData()" style="background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--text2);padding:6px 14px;border-radius:6px;cursor:pointer;font-weight:600">
+          <button class="btn btn-sm btn-subtle" onclick="loadFleetData()">
             🔄 Refresh Fleet
           </button>
         </div>
       </div>
 
       <!-- Fleet Metrics Ribbon -->
-      <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:12px;margin-bottom:16px">
-        <div class="metric-card" style="padding:14px">
-          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;font-weight:600">Total Edge Gateways</div>
-          <div id="fleet_stat_total_nodes" style="font-size:22px;font-weight:800;color:#f8fafc">4</div>
-          <div style="font-size:11px;color:#10b981;margin-top:2px">● All Gateways Operational</div>
+      <div class="fleet-metrics-ribbon">
+        <div class="metric-card">
+          <div class="card-label">Total Edge Gateways</div>
+          <div id="fleet_stat_total_nodes" class="card-val">4</div>
+          <div class="card-sub accent-green">● All Gateways Operational</div>
         </div>
-        <div class="metric-card" style="padding:14px">
-          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;font-weight:600">Central Model Hash</div>
-          <div id="fleet_stat_model_hash" style="font-size:14px;font-family:monospace;font-weight:700;color:#38bdf8;margin-top:6px">f677643fc0090f24</div>
-          <div style="font-size:11px;color:var(--text3);margin-top:2px">LightGBM v4.2 Production</div>
+        <div class="metric-card">
+          <div class="card-label">Central Model Hash</div>
+          <div id="fleet_stat_model_hash" class="card-val monospace accent-cyan" style="font-size:14px;margin-top:6px">f677643fc0090f24</div>
+          <div class="card-sub">LightGBM v4.2 Production</div>
         </div>
-        <div class="metric-card" style="padding:14px">
-          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;font-weight:600">Fleet Hardware XDP Drops</div>
-          <div id="fleet_stat_xdp_drops" style="font-size:22px;font-weight:800;color:#ef4444">3,810</div>
-          <div style="font-size:11px;color:var(--text3);margin-top:2px">Kernel-Level Packet Rejections</div>
+        <div class="metric-card">
+          <div class="card-label">Fleet Hardware XDP Drops</div>
+          <div id="fleet_stat_xdp_drops" class="card-val accent-red">3,810</div>
+          <div class="card-sub">Kernel-Level Rejections</div>
         </div>
-        <div class="metric-card" style="padding:14px">
-          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;font-weight:600">Global Herd Immunity</div>
-          <div id="fleet_stat_blocks_count" style="font-size:22px;font-weight:800;color:#f59e0b">0 Blocks</div>
-          <div style="font-size:11px;color:#10b981;margin-top:2px">100% Propagation Rate</div>
+        <div class="metric-card">
+          <div class="card-label">Global Herd Immunity</div>
+          <div id="fleet_stat_blocks_count" class="card-val accent-amber">0 Blocks</div>
+          <div class="card-sub accent-green">100% Propagation Rate</div>
         </div>
       </div>
 
       <!-- Live Edge Gateway Health Cards Grid -->
-      <div class="section-title" style="font-size:14px;margin-bottom:10px">Live Distributed Gateway Health & Synchronization</div>
-      <div class="fleet-grid" id="fleet_nodes_container">
-        <!-- Rendered dynamically by loadFleetData() -->
-      </div>
+      <div class="section-title" style="font-size:14px;margin-bottom:12px">Distributed Gateway Telemetry &amp; Synchronization</div>
+      <div class="fleet-grid" id="fleet_nodes_container"></div>
 
       <!-- Global Herd Immunity Broadcast & Fleet Blocks Row -->
-      <div class="grid-2" style="margin-top:20px;grid-template-columns:1fr 1.4fr">
+      <div class="grid-2" style="margin-top:24px;grid-template-columns:1fr 1.4fr">
         <!-- Broadcast Form Panel -->
         <div class="panel fade-in">
           <div class="panel-header">
             <div class="panel-title">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-              Broadcast Global Herd-Immunity Block
+              <span>Broadcast Herd-Immunity Block</span>
             </div>
-            <span class="tag t-warn" style="font-size:10px">Fleet-Wide Push</span>
+            <span class="tag t-warn">Fleet Push</span>
           </div>
-          <p style="font-size:12px;color:var(--text3);margin-top:0;margin-bottom:14px">
+          <p class="panel-desc">
             Immediately propagate an attacker IP across all remote branch gateways. Remote nodes drop attacker traffic at wire-speed via eBPF/XDP.
           </p>
           <form id="fleet_broadcast_form" onsubmit="submitFleetBroadcast(event)">
-            <div style="margin-bottom:12px">
-              <label style="display:block;font-size:11px;color:var(--text2);margin-bottom:4px;font-weight:600">Attacker Target IP</label>
-              <input type="text" id="fleet_block_ip" placeholder="e.g. 192.168.1.185 or 10.0.0.99" required
-                style="width:100%;background:rgba(2,6,23,0.6);border:1px solid var(--border);color:#fff;padding:8px 12px;border-radius:6px;font-family:monospace;font-size:13px">
+            <div class="form-group">
+              <label class="form-label">Attacker Target IP</label>
+              <input type="text" id="fleet_block_ip" placeholder="e.g. 192.168.1.185 or 10.0.0.99" required class="form-input monospace">
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
-              <div>
-                <label style="display:block;font-size:11px;color:var(--text2);margin-bottom:4px;font-weight:600">Quarantine Severity</label>
-                <select id="fleet_block_severity" style="width:100%;background:rgba(2,6,23,0.6);border:1px solid var(--border);color:#fff;padding:8px;border-radius:6px;font-size:12px">
+            <div class="form-row-2">
+              <div class="form-group">
+                <label class="form-label">Quarantine Severity</label>
+                <select id="fleet_block_severity" class="form-select">
                   <option value="KILL">KILL (Kernel XDP Drop)</option>
                   <option value="HARD">HARD (eBPF Reject)</option>
                   <option value="RATE_LIMIT">RATE_LIMIT (Token Bucket)</option>
                 </select>
               </div>
-              <div>
-                <label style="display:block;font-size:11px;color:var(--text2);margin-bottom:4px;font-weight:600">Reason</label>
-                <input type="text" id="fleet_block_reason" value="Central SOC Fleet Quarantine" required
-                  style="width:100%;background:rgba(2,6,23,0.6);border:1px solid var(--border);color:#fff;padding:8px;border-radius:6px;font-size:12px">
+              <div class="form-group">
+                <label class="form-label">Reason</label>
+                <input type="text" id="fleet_block_reason" value="Central SOC Fleet Quarantine" required class="form-input">
               </div>
             </div>
-            <button type="submit" class="btn btn-sm" style="width:100%;background:linear-gradient(135deg, #ef4444, #dc2626);color:#fff;border:none;padding:10px;border-radius:6px;font-weight:700;font-size:13px;cursor:pointer">
-              🚨 Broadcast Herd-Immunity Block to Fleet
+            <button type="submit" class="btn btn-danger" style="width:100%">
+              🚨 Broadcast Herd-Immunity Block
             </button>
           </form>
         </div>
@@ -925,12 +976,12 @@
           <div class="panel-header">
             <div class="panel-title">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-              Active Fleet Quarantine Blocks
+              <span>Active Fleet Quarantine Blocks</span>
             </div>
             <span class="tag t-ok" id="fleet_blocks_badge">0 Active</span>
           </div>
-          <div style="max-height:260px;overflow-y:auto">
-            <table class="data-table" style="width:100%;font-size:12px">
+          <div class="table-scroll-container" style="max-height:280px">
+            <table class="data-table">
               <thead>
                 <tr>
                   <th>IP Address</th>
@@ -941,7 +992,7 @@
                 </tr>
               </thead>
               <tbody id="fleet_blocks_tbody">
-                <tr><td colspan="5" style="text-align:center;color:var(--text3);padding:20px">No active fleet-wide quarantine blocks</td></tr>
+                <tr><td colspan="5" style="text-align:center;color:var(--text3);padding:24px">No active fleet-wide quarantine blocks</td></tr>
               </tbody>
             </table>
           </div>
@@ -951,16 +1002,16 @@
 
     <!-- ==================== PAGE: GOVERNANCE, RBAC & AUDIT LEDGER ==================== -->
     <div class="page" id="page_governance" style="display:none">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+      <div class="page-header-row">
         <div>
-          <div class="section-title" style="margin-bottom:2px">Cryptographic Governance, RBAC & Audit Ledger</div>
-          <div style="font-size:12px;color:var(--text3)">SHA-256 Merkle-Chained Ledger • Scoped API Keys • Zero-Trust Compliance</div>
+          <div class="section-title" style="margin-bottom:2px">Cryptographic Governance, RBAC &amp; Audit Ledger</div>
+          <div class="page-subtitle">SHA-256 Merkle-Chained Ledger • Scoped API Keys • Zero-Trust Compliance</div>
         </div>
-        <div style="display:flex;gap:8px;align-items:center">
-          <button class="btn btn-sm" onclick="verifyAuditLedger()" style="background:#10b981;color:#04151f;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-weight:700">
+        <div class="page-header-actions">
+          <button class="btn btn-sm btn-success" onclick="verifyAuditLedger()">
             🔐 Verify SHA-256 Chain Integrity
           </button>
-          <button class="btn btn-sm" onclick="loadGovernanceData()" style="background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--text2);padding:6px 14px;border-radius:6px;cursor:pointer;font-weight:600">
+          <button class="btn btn-sm btn-subtle" onclick="loadGovernanceData()">
             🔄 Refresh
           </button>
         </div>
@@ -968,63 +1019,60 @@
 
       <!-- Blockchain Chain Verifier Status Panel -->
       <div class="chain-verifier-panel">
-        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
-          <div style="display:flex;align-items:center;gap:12px">
-            <span style="font-size:32px">🛡️</span>
+        <div class="chain-verifier-header">
+          <div class="chain-verifier-title-group">
+            <span class="chain-icon">🛡️</span>
             <div>
-              <div style="font-size:16px;font-weight:800;color:#f8fafc" id="audit_status_title">Cryptographic Blockchain Ledger: Active & Immutable</div>
-              <div style="font-size:12px;color:var(--text3);margin-top:2px" id="audit_status_sub">SHA-256 hash chaining: every operator action, config update, and block is sealed tamper-proof.</div>
+              <div class="chain-title" id="audit_status_title">Cryptographic Blockchain Ledger: Active &amp; Immutable</div>
+              <div class="chain-subtitle" id="audit_status_sub">SHA-256 hash chaining: every operator action, config update, and block is sealed tamper-proof.</div>
             </div>
           </div>
-          <span class="tag t-ok" id="audit_status_badge" style="font-size:12px;font-weight:700;padding:6px 14px">● CHAIN VALIDATED</span>
+          <span class="tag t-ok" id="audit_status_badge">● CHAIN VALIDATED</span>
         </div>
 
         <!-- Animated Block-by-Block Visualizer Strip -->
-        <div class="chain-stream-container" id="audit_chain_visualizer">
-          <!-- Blocks rendered dynamically -->
-        </div>
+        <div class="chain-stream-container" id="audit_chain_visualizer"></div>
       </div>
 
       <!-- RBAC & API Key Manager Row -->
-      <div class="grid-2" style="margin-bottom:20px;grid-template-columns:1fr 1.2fr">
+      <div class="grid-2" style="margin-bottom:24px;grid-template-columns:1fr 1.2fr">
         <!-- Generate Scoped API Key Panel -->
         <div class="panel fade-in">
           <div class="panel-header">
             <div class="panel-title">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-1.5 1.5L16 7l-1.5-1.5M19 12l2 2-2 2m-2-2l-2-2m-2 2l-2-2M15 19l2 2-2 2m-2-2l-2-2"/></svg>
-              Enterprise API Key & RBAC Manager
+              <span>Enterprise API Key &amp; RBAC Manager</span>
             </div>
-            <span class="tag t-info" style="font-size:10px">Zero-Trust Tokens</span>
+            <span class="tag t-info">Zero-Trust Tokens</span>
           </div>
-          <p style="font-size:12px;color:var(--text3);margin-top:0;margin-bottom:12px">
+          <p class="panel-desc">
             Issue cryptographically scoped Bearer API keys mapped to least-privilege enterprise roles.
           </p>
           <form id="create_key_form" onsubmit="submitCreateApiKey(event)">
-            <div style="margin-bottom:10px">
-              <label style="display:block;font-size:11px;color:var(--text2);margin-bottom:4px;font-weight:600">Client / Sensor Name</label>
-              <input type="text" id="new_key_name" placeholder="e.g. splunk-connector or factory-edge-01" required
-                style="width:100%;background:rgba(2,6,23,0.6);border:1px solid var(--border);color:#fff;padding:8px 12px;border-radius:6px;font-size:12px">
+            <div class="form-group">
+              <label class="form-label">Client / Sensor Name</label>
+              <input type="text" id="new_key_name" placeholder="e.g. splunk-connector or factory-edge-01" required class="form-input">
             </div>
-            <div style="margin-bottom:12px">
-              <label style="display:block;font-size:11px;color:var(--text2);margin-bottom:4px;font-weight:600">Assigned Role</label>
-              <select id="new_key_role" style="width:100%;background:rgba(2,6,23,0.6);border:1px solid var(--border);color:#fff;padding:8px;border-radius:6px;font-size:12px">
+            <div class="form-group">
+              <label class="form-label">Assigned Role</label>
+              <select id="new_key_role" class="form-select">
                 <option value="ADMIN">ADMIN — Full configuration, training, and quarantine privileges</option>
                 <option value="SOC_ANALYST" selected>SOC_ANALYST — Quarantine, attack simulation, and incident playbooks</option>
                 <option value="AUDITOR">AUDITOR — Read-only immutable ledger, metrics, and compliance exports</option>
                 <option value="EDGE_SENSOR">EDGE_SENSOR — Node heartbeat, telemetry ingestion, and fleet synchronization</option>
               </select>
             </div>
-            <button type="submit" class="btn btn-sm" style="width:100%;background:var(--primary);color:#fff;border:none;padding:9px;border-radius:6px;font-weight:700;font-size:13px;cursor:pointer">
+            <button type="submit" class="btn btn-accent" style="width:100%">
               🔑 Generate Scoped Enterprise Key
             </button>
           </form>
 
           <!-- Newly Generated Key Alert Box -->
-          <div id="new_key_display_box" style="display:none;margin-top:14px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:8px;padding:12px">
-            <div style="font-size:11px;color:#10b981;font-weight:700;margin-bottom:4px">✅ KEY GENERATED (Copy now; will not be displayed again):</div>
-            <div style="display:flex;gap:6px;align-items:center">
-              <input type="text" id="generated_key_value" readonly style="flex:1;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.1);color:#38bdf8;padding:6px 10px;font-family:monospace;font-size:12px;border-radius:4px">
-              <button class="btn btn-sm" onclick="copyGeneratedKey()" style="background:#10b981;color:#000;border:none;padding:6px 12px;font-weight:700;cursor:pointer;border-radius:4px">
+          <div id="new_key_display_box" class="key-display-box" style="display:none">
+            <div class="key-display-heading">✅ KEY GENERATED (Copy now; will not be displayed again):</div>
+            <div class="key-display-input-wrap">
+              <input type="text" id="generated_key_value" readonly class="key-input monospace">
+              <button class="btn btn-sm btn-success" onclick="copyGeneratedKey()">
                 📋 Copy
               </button>
             </div>
@@ -1036,12 +1084,12 @@
           <div class="panel-header">
             <div class="panel-title">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-              Active Scoped API Keys
+              <span>Active Scoped API Keys</span>
             </div>
             <span class="tag t-ok" id="keys_count_badge">0 Keys</span>
           </div>
-          <div style="max-height:240px;overflow-y:auto">
-            <table class="data-table" style="width:100%;font-size:12px">
+          <div class="table-scroll-container" style="max-height:260px">
+            <table class="data-table">
               <thead>
                 <tr>
                   <th>Client Name</th>
@@ -1051,7 +1099,7 @@
                 </tr>
               </thead>
               <tbody id="keys_list_tbody">
-                <tr><td colspan="4" style="text-align:center;color:var(--text3);padding:20px">No active API keys registered</td></tr>
+                <tr><td colspan="4" style="text-align:center;color:var(--text3);padding:24px">No active API keys registered</td></tr>
               </tbody>
             </table>
           </div>
@@ -1063,12 +1111,12 @@
         <div class="panel-header">
           <div class="panel-title">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-            Immutable Audit Trail Ledger (Most Recent Blocks)
+            <span>Immutable Audit Trail Ledger (Most Recent Blocks)</span>
           </div>
           <span class="tag t-info" id="audit_entries_badge">100 Entries Loaded</span>
         </div>
-        <div style="max-height:360px;overflow-y:auto">
-          <table class="data-table" style="width:100%;font-size:12px">
+        <div class="table-scroll-container" style="max-height:360px">
+          <table class="data-table">
             <thead>
               <tr>
                 <th>Block #</th>
@@ -1080,9 +1128,7 @@
                 <th>Block SHA-256</th>
               </tr>
             </thead>
-            <tbody id="audit_trail_tbody">
-              <!-- Entries populated by loadGovernanceData() -->
-            </tbody>
+            <tbody id="audit_trail_tbody"></tbody>
           </table>
         </div>
       </div>
@@ -1090,65 +1136,65 @@
 
     <!-- ==================== PAGE: SIEM & THREAT INTEL HUB ==================== -->
     <div class="page" id="page_siem" style="display:none">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+      <div class="page-header-row">
         <div>
-          <div class="section-title" style="margin-bottom:2px">SIEM & Threat Intelligence Hub</div>
-          <div style="font-size:12px;color:var(--text3)">OASIS STIX 2.1 Threat Sharing • ArcSight Common Event Format (CEF) • OpenAPI 3.1 Documentation</div>
+          <div class="section-title" style="margin-bottom:2px">SIEM &amp; Threat Intelligence Hub</div>
+          <div class="page-subtitle">OASIS STIX 2.1 Threat Sharing • ArcSight Common Event Format (CEF) • OpenAPI 3.1 Documentation</div>
         </div>
-        <div style="display:flex;gap:8px;align-items:center">
-          <a href="/api/docs" target="_blank" class="btn btn-sm" style="background:#06b6d4;color:#04151f;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:6px">
+        <div class="page-header-actions">
+          <a href="/api/docs" target="_blank" class="btn btn-sm btn-primary-accent" style="text-decoration:none">
             📖 Open Swagger Docs ↗
           </a>
-          <button class="btn btn-sm" onclick="loadSiemData()" style="background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--text2);padding:6px 14px;border-radius:6px;cursor:pointer;font-weight:600">
+          <button class="btn btn-sm btn-subtle" onclick="loadSiemData()">
             🔄 Refresh SIEM
           </button>
         </div>
       </div>
 
       <!-- SIEM Integration Info Cards -->
-      <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:12px;margin-bottom:16px">
-        <div class="metric-card" style="padding:14px">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <span style="font-size:11px;color:var(--text3);text-transform:uppercase;font-weight:600">STIX 2.1 Sharing</span>
-            <button class="btn btn-sm" onclick="downloadStixJson()" style="background:rgba(255,255,255,0.08);border:1px solid var(--border);color:#38bdf8;padding:3px 8px;font-size:11px;border-radius:4px;cursor:pointer">📥 Download</button>
+      <div class="siem-cards-row">
+        <div class="metric-card siem-card">
+          <div class="siem-card-top">
+            <span class="siem-card-label">STIX 2.1 Sharing</span>
+            <button class="btn btn-sm btn-subtle" onclick="downloadStixJson()">📥 Download</button>
           </div>
-          <div style="font-size:18px;font-weight:800;color:#38bdf8;margin-top:6px">OASIS Open Standard</div>
-          <div style="font-size:11px;color:var(--text3);margin-top:2px">Connected to MISP, OpenCTI & TAXII</div>
+          <div class="siem-card-val accent-cyan">OASIS Open Standard</div>
+          <div class="siem-card-sub">Connected to MISP, OpenCTI &amp; TAXII</div>
         </div>
-        <div class="metric-card" style="padding:14px">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <span style="font-size:11px;color:var(--text3);text-transform:uppercase;font-weight:600">ArcSight CEF Stream</span>
-            <button class="btn btn-sm" onclick="downloadCefFile()" style="background:rgba(255,255,255,0.08);border:1px solid var(--border);color:#10b981;padding:3px 8px;font-size:11px;border-radius:4px;cursor:pointer">💾 Export .cef</button>
+        <div class="metric-card siem-card">
+          <div class="siem-card-top">
+            <span class="siem-card-label">ArcSight CEF Stream</span>
+            <button class="btn btn-sm btn-subtle" onclick="downloadCefFile()">💾 Export .cef</button>
           </div>
-          <div style="font-size:18px;font-weight:800;color:#10b981;margin-top:6px">High-Speed Syslog</div>
-          <div style="font-size:11px;color:var(--text3);margin-top:2px">Splunk, QRadar, Microsoft Sentinel</div>
+          <div class="siem-card-val accent-green">High-Speed Syslog</div>
+          <div class="siem-card-sub">Splunk, QRadar, Microsoft Sentinel</div>
         </div>
-        <div class="metric-card" style="padding:14px">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <span style="font-size:11px;color:var(--text3);text-transform:uppercase;font-weight:600">RESTful OpenAPI 3.1</span>
-            <a href="/api/openapi.json" target="_blank" style="color:#f59e0b;font-size:11px;text-decoration:none">JSON Spec ↗</a>
+        <div class="metric-card siem-card">
+          <div class="siem-card-top">
+            <span class="siem-card-label">RESTful OpenAPI 3.1</span>
+            <a href="/api/openapi.json" target="_blank" class="accent-amber" style="font-size:11px;text-decoration:none">JSON Spec ↗</a>
           </div>
-          <div style="font-size:18px;font-weight:800;color:#f59e0b;margin-top:6px">Interactive Swagger</div>
-          <div style="font-size:11px;color:var(--text3);margin-top:2px">25+ Authenticated Production APIs</div>
+          <div class="siem-card-val accent-amber">Interactive Swagger</div>
+          <div class="siem-card-sub">25+ Authenticated Production APIs</div>
         </div>
       </div>
 
       <!-- Dual Preview: STIX 2.1 Inspector & Live ArcSight CEF Terminal -->
-      <div class="grid-2" style="grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+      <div class="grid-2" style="margin-bottom:24px">
         <!-- STIX 2.1 Bundle Inspector Panel -->
         <div class="panel fade-in">
           <div class="panel-header">
             <div class="panel-title">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
-              STIX 2.1 Threat Indicator Bundle Inspector
+              <span>STIX 2.1 Indicator Bundle</span>
             </div>
-            <button class="btn btn-sm" onclick="copyStixToClipboard()" style="background:rgba(255,255,255,0.08);color:var(--text2);border:1px solid var(--border);padding:4px 10px;border-radius:4px;font-size:11px;cursor:pointer">
+            <button class="btn btn-sm btn-subtle" onclick="copyStixToClipboard()">
               📋 Copy JSON
             </button>
           </div>
           <div class="siem-terminal-window">
             <div class="siem-terminal-header">
-              <span style="font-size:11px;color:#94a3b8">GET /api/v1/export/stix • application/json</span>
+              <span>GET /api/v1/export/stix • application/json</span>
               <span class="tag t-ok" style="font-size:9px">STIX 2.1 Validated</span>
             </div>
             <pre class="siem-terminal-body" id="siem_stix_viewer">Loading STIX bundle...</pre>
@@ -1160,18 +1206,18 @@
           <div class="panel-header">
             <div class="panel-title">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
-              Live ArcSight CEF / Syslog Stream
+              <span>ArcSight CEF / Syslog Stream</span>
             </div>
-            <button class="btn btn-sm" onclick="copyCefToClipboard()" style="background:rgba(255,255,255,0.08);color:var(--text2);border:1px solid var(--border);padding:4px 10px;border-radius:4px;font-size:11px;cursor:pointer">
+            <button class="btn btn-sm btn-subtle" onclick="copyCefToClipboard()">
               📋 Copy CEF
             </button>
           </div>
           <div class="siem-terminal-window">
             <div class="siem-terminal-header">
-              <span style="font-size:11px;color:#94a3b8">GET /api/v1/export/cef • text/plain</span>
+              <span>GET /api/v1/export/cef • text/plain</span>
               <span class="tag t-info" style="font-size:9px">RFC 5424 Format</span>
             </div>
-            <pre class="siem-terminal-body" id="siem_cef_viewer" style="color:#a7f3d0">Loading ArcSight CEF stream...</pre>
+            <pre class="siem-terminal-body accent-green monospace" id="siem_cef_viewer">Loading ArcSight CEF stream...</pre>
           </div>
         </div>
       </div>
@@ -1181,59 +1227,60 @@
         <div class="panel-header">
           <div class="panel-title">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-            OpenAPI 3.1 & Interactive Swagger Documentation Explorer
+            <span>OpenAPI 3.1 &amp; Interactive Swagger Explorer</span>
           </div>
-          <button class="btn btn-sm" onclick="toggleSwaggerPreview()" id="btn_toggle_swagger" style="background:var(--primary);color:#fff;border:none;padding:4px 12px;border-radius:4px;font-size:11px;cursor:pointer">
+          <button class="btn btn-sm btn-accent" onclick="toggleSwaggerPreview()" id="btn_toggle_swagger">
             👁️ Toggle Embedded Swagger UI
           </button>
         </div>
-        <div id="swagger_preview_container" style="display:none;height:550px;width:100%;border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,0.1);margin-top:10px">
-          <iframe src="/api/docs" style="width:100%;height:100%;border:none;background:#fff"></iframe>
+        <div id="swagger_preview_container" class="swagger-container" style="display:none">
+          <iframe src="/api/docs" class="swagger-iframe"></iframe>
         </div>
       </div>
     </div>
 
     <!-- ==================== PAGE: CONTROLS ==================== -->
     <div class="page" id="page_controls" style="display:none">
-      <div class="section-title">Decision Engine Controls</div>
+      <div class="section-title">Decision Engine Thresholds &amp; Parameters</div>
       <div class="panel fade-in">
-        <div class="controls">
-          <div class="ctrl-group"><label>Threshold</label><input id="ctl_threshold" type="number" step="0.01" min="0" max="1" style="width:90px"/></div>
-          <div class="ctrl-group"><label>Grace Hits</label><input id="ctl_grace" type="number" min="1" max="20" style="width:80px"/></div>
-          <div class="ctrl-group"><label>Window</label><input id="ctl_window" type="number" min="1" max="50" style="width:80px"/></div>
-          <div class="ctrl-group"><label>Cooldown</label><input id="ctl_cool" type="number" min="0" max="3600" style="width:90px"/></div>
-          <div class="ctrl-group" style="flex-direction:row;align-items:center;gap:6px;padding-top:18px">
-            <input id="ctl_adaptive" type="checkbox"/><label style="text-transform:none;font-size:13px;color:var(--text)">Adaptive</label>
+        <div class="controls-bar">
+          <div class="ctrl-group"><label>Threshold</label><input id="ctl_threshold" type="number" step="0.01" min="0" max="1" class="form-input ctrl-input"></div>
+          <div class="ctrl-group"><label>Grace Hits</label><input id="ctl_grace" type="number" min="1" max="20" class="form-input ctrl-input"></div>
+          <div class="ctrl-group"><label>Window</label><input id="ctl_window" type="number" min="1" max="50" class="form-input ctrl-input"></div>
+          <div class="ctrl-group"><label>Cooldown</label><input id="ctl_cool" type="number" min="0" max="3600" class="form-input ctrl-input"></div>
+          <div class="ctrl-group ctrl-checkbox-group">
+            <input id="ctl_adaptive" type="checkbox" class="form-checkbox">
+            <label for="ctl_adaptive" class="checkbox-label">Adaptive Thresholding</label>
           </div>
-          <div style="flex:1"></div>
-          <button class="btn btn-primary" id="btn_save">💾 Save Config</button>
+          <div class="spacer"></div>
+          <button class="btn btn-accent" id="btn_save">💾 Save Config</button>
         </div>
         <div class="toast" id="save_msg"></div>
       </div>
 
-      <div class="section-title" style="margin-top:24px">Data Management</div>
+      <div class="section-title" style="margin-top:24px">Data Management &amp; Incident Log Reset</div>
       <div class="panel fade-in">
-        <div class="controls">
-          <button class="btn" id="btn_download">📥 Export CSV</button>
-          <button class="btn btn-danger" id="btn_clear">🗑 Clear Log</button>
-          <button class="btn btn-danger" id="btn_clear_all">⚠ Reset All</button>
+        <div class="data-mgmt-bar">
+          <button class="btn btn-subtle" id="btn_download">📥 Export CSV</button>
+          <button class="btn btn-danger" id="btn_clear">🗑 Clear Alert Log</button>
+          <button class="btn btn-danger-dark" id="btn_clear_all">⚠ Reset All Telemetry</button>
         </div>
       </div>
     </div>
 
     <!-- ==================== PAGE: EVENTS ==================== -->
     <div class="page" id="page_events" style="display:none">
-      <div class="section-title">Event Log</div>
+      <div class="section-title">Autonomous Threat Event Log</div>
       <div class="panel fade-in">
         <div class="panel-header">
           <div class="panel-title">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
-            Recent Events
+            <span>Recent Incident Records</span>
           </div>
           <div class="filters">
-            <label>State <select id="flt_state"><option value="all">All</option><option value="ATTACK">Attack</option><option value="benign">Benign</option></select></label>
-            <label><input id="flt_blocked" type="checkbox"/> Blocked only</label>
-            <label>Search <input id="flt_text" type="text" placeholder="type / reason / IP..." style="min-width:180px"/></label>
+            <label>State <select id="flt_state" class="form-select select-sm"><option value="all">All</option><option value="ATTACK">Attack</option><option value="benign">Benign</option></select></label>
+            <label class="filter-check-label"><input id="flt_blocked" type="checkbox" class="form-checkbox"/> Blocked only</label>
+            <label>Search <input id="flt_text" type="text" placeholder="type / reason / IP..." class="form-input input-sm"/></label>
           </div>
         </div>
         <div class="tbl-wrap" id="tbl_wrap">
@@ -1248,16 +1295,16 @@
 
     <!-- ==================== PAGE: SIMULATE ==================== -->
     <div class="page" id="page_simulate" style="display:none">
-      <div class="section-title">Attack Simulation Lab</div>
-      <div class="panel fade-in" style="border:1px solid rgba(239,68,68,0.15)">
+      <div class="section-title">Live Attack Simulation Lab</div>
+      <div class="panel fade-in sim-lab-panel">
         <div class="panel-header">
-          <div class="panel-title" style="color:#f87171">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-            Launch Simulated Attacks
+          <div class="panel-title accent-red">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span>Launch In-Memory Attack Vectors</span>
           </div>
-          <div class="panel-subtitle">Injects attack-pattern features → decision loop scores → dashboard updates</div>
+          <div class="panel-subtitle">Injects raw 13-feature vectors directly into streaming telemetry for real-time model scoring</div>
         </div>
-        <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:8px">
+        <div class="sim-buttons-grid">
           <button class="sim-btn" onclick="launchAttack('syn')">⚡ SYN Flood</button>
           <button class="sim-btn" onclick="launchAttack('udp')">🌊 UDP Flood</button>
           <button class="sim-btn" onclick="launchAttack('http')">🐌 HTTP Slowloris</button>
@@ -1265,15 +1312,15 @@
           <button class="sim-btn" onclick="launchAttack('botnet')">🤖 IoT Botnet</button>
           <button class="sim-btn" onclick="launchAttack('exfil')">📤 Data Exfil</button>
         </div>
-        <div id="sim_msg" style="color:var(--amber);margin-top:12px;font-size:13px;font-weight:500;min-height:20px"></div>
+        <div id="sim_msg" class="sim-status-message"></div>
       </div>
 
-      <div class="section-title" style="margin-top:24px">How It Works</div>
+      <div class="section-title" style="margin-top:24px">Simulation Architecture</div>
       <div class="panel fade-in">
-        <div style="font-size:13px;color:var(--text2);line-height:1.8">
-          <p>Each button injects <strong>realistic attack-pattern feature rows</strong> directly into <code style="color:var(--accent);background:rgba(59,130,246,0.1);padding:2px 6px;border-radius:4px">data/features.csv</code>.</p>
-          <p style="margin-top:8px">The <strong>decision loop</strong> picks up the rows, scores them with the ML model, and writes detections to <code style="color:var(--accent);background:rgba(59,130,246,0.1);padding:2px 6px;border-radius:4px">alerts.jsonl</code>.</p>
-          <p style="margin-top:8px">The dashboard then visualizes everything in real-time. No Scapy or admin privileges required.</p>
+        <div class="sim-explanation">
+          <p>Each button injects <strong>realistic attack-pattern feature vectors</strong> directly into <code class="code-pill">data/features.csv</code>.</p>
+          <p>The <strong>decision loop</strong> continuously consumes new feature rows, evaluates multi-model ensembles + zero-day detectors, and logs alerts to <code class="code-pill">alerts.jsonl</code>.</p>
+          <p>The dashboard updates over WebSockets at sub-millisecond latency. Zero Scapy or root privileges required.</p>
         </div>
       </div>
     </div>
@@ -1284,7 +1331,6 @@
 </div><!-- /main-content -->
 
 </div><!-- /app-layout -->
-
 <script>
 // ============================================================================
 // IoTGuard Dashboard — JavaScript Engine
@@ -1665,8 +1711,8 @@ function renderTimeMachineEvolutionChart(timeline) {
         {
           label: 'syn_ratio',
           data: synData,
-          borderColor: '#38bdf8',
-          backgroundColor: 'rgba(56,189,248,0.1)',
+          borderColor: '#ff4d00',
+          backgroundColor: 'rgba(255,77,0,0.12)',
           borderWidth: 2.5,
           tension: 0.3,
           yAxisID: 'y_ratio',
@@ -1676,8 +1722,8 @@ function renderTimeMachineEvolutionChart(timeline) {
         {
           label: 'rst_ratio',
           data: rstData,
-          borderColor: '#fb7185',
-          backgroundColor: 'rgba(251,113,133,0.08)',
+          borderColor: '#ef4444',
+          backgroundColor: 'rgba(239,68,68,0.08)',
           borderWidth: 2,
           tension: 0.3,
           yAxisID: 'y_ratio',
@@ -1686,7 +1732,7 @@ function renderTimeMachineEvolutionChart(timeline) {
         {
           label: 'flows',
           data: flowData,
-          borderColor: '#fbbf24',
+          borderColor: '#f59e0b',
           backgroundColor: 'transparent',
           borderWidth: 2,
           borderDash: [4, 4],
@@ -1697,7 +1743,7 @@ function renderTimeMachineEvolutionChart(timeline) {
         {
           label: 'KB_total',
           data: byteData,
-          borderColor: '#818cf8',
+          borderColor: '#e8e8e8',
           backgroundColor: 'transparent',
           borderWidth: 2,
           borderDash: [2, 2],
@@ -1942,18 +1988,18 @@ document.getElementById('timemachine_modal')?.addEventListener('click', e => {
 function setupCharts() {
   const ctx = document.getElementById('scoreChart').getContext('2d');
   const grad = ctx.createLinearGradient(0,0,0,220);
-  grad.addColorStop(0,'rgba(59,130,246,.3)');grad.addColorStop(1,'rgba(59,130,246,.0)');
+  grad.addColorStop(0,'rgba(255,77,0,.25)');grad.addColorStop(1,'rgba(255,77,0,.0)');
   chart = new Chart(ctx,{type:'line',data:{labels:[],datasets:[
-    {label:'Score',data:[],borderWidth:2,pointRadius:0,borderColor:'#3b82f6',backgroundColor:grad,fill:true,tension:.35},
+    {label:'Score',data:[],borderWidth:2,pointRadius:0,borderColor:'#ff4d00',backgroundColor:grad,fill:true,tension:.35},
     {label:'Threshold',data:[],borderWidth:2,pointRadius:0,borderColor:'#f59e0b',borderDash:[6,4],fill:false}
   ]},options:{animation:false,responsive:true,maintainAspectRatio:false,
     interaction:{intersect:false,mode:'index'},
-    scales:{x:{display:false},y:{min:0,max:1,grid:{color:'rgba(99,130,190,.06)'},ticks:{color:'#64748b',font:{size:11}}}},
-    plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(12,20,37,.95)',borderColor:'rgba(99,130,190,.2)',borderWidth:1,titleColor:'#e2e8f0',bodyColor:'#94a3b8',padding:10,cornerRadius:8}}
+    scales:{x:{display:false},y:{min:0,max:1,grid:{color:'rgba(255,255,255,.04)'},ticks:{color:'#555555',font:{size:11}}}},
+    plugins:{legend:{display:false},tooltip:{backgroundColor:'#141418',borderColor:'rgba(255,255,255,.1)',borderWidth:1,titleColor:'#ffffff',bodyColor:'#888888',padding:10,cornerRadius:8}}
   }});
-  const colors = ['#3b82f6','#8b5cf6','#ef4444','#f59e0b','#10b981','#06b6d4','#ec4899','#6366f1'];
+  const colors = ['#ff4d00','#ef4444','#f59e0b','#22c55e','#ff7844','#a78bfa','#ec4899','#f97316'];
   pieChart = new Chart(document.getElementById('pieChart'),{type:'doughnut',data:{labels:[],datasets:[{data:[],backgroundColor:colors,borderWidth:0,hoverOffset:6}]},
-    options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'right',labels:{color:'#94a3b8',padding:12,font:{size:11},usePointStyle:true,pointStyle:'circle'}},tooltip:{backgroundColor:'rgba(12,20,37,.95)',borderColor:'rgba(99,130,190,.2)',borderWidth:1,titleColor:'#e2e8f0',bodyColor:'#94a3b8',padding:10,cornerRadius:8}}}
+    options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{position:'right',labels:{color:'#888888',padding:12,font:{size:11},usePointStyle:true,pointStyle:'circle'}},tooltip:{backgroundColor:'#141418',borderColor:'rgba(255,255,255,.1)',borderWidth:1,titleColor:'#ffffff',bodyColor:'#888888',padding:10,cornerRadius:8}}}
   });
 }
 
@@ -1966,9 +2012,9 @@ async function loadRadar() {
     const ctx = document.getElementById('radarChart');
     if (radarChart) radarChart.destroy();
     radarChart = new Chart(ctx, {type:'radar',data:{labels:j.features.map(f=>f.replace('_',' ')),datasets:[{
-      label:'Feature Values',data:j.values,borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,.15)',borderWidth:2,pointBackgroundColor:'#3b82f6',pointRadius:3
-    }]},options:{responsive:true,maintainAspectRatio:false,scales:{r:{beginAtZero:true,max:1,grid:{color:'rgba(99,130,190,.08)'},pointLabels:{color:'#94a3b8',font:{size:10}},ticks:{display:false}}},
-      plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(12,20,37,.95)',borderColor:'rgba(99,130,190,.2)',borderWidth:1,titleColor:'#e2e8f0',bodyColor:'#94a3b8',cornerRadius:8}}}
+      label:'Feature Values',data:j.values,borderColor:'#ff4d00',backgroundColor:'rgba(255,77,0,.15)',borderWidth:2,pointBackgroundColor:'#ff4d00',pointRadius:3
+    }]},options:{responsive:true,maintainAspectRatio:false,scales:{r:{beginAtZero:true,max:1,grid:{color:'rgba(255,255,255,.06)'},pointLabels:{color:'#888888',font:{size:10}},ticks:{display:false}}},
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'#141418',borderColor:'rgba(255,255,255,.1)',borderWidth:1,titleColor:'#ffffff',bodyColor:'#888888',cornerRadius:8}}}
     });
   } catch(e) { console.log('Radar load failed:', e); }
 }
@@ -2484,13 +2530,13 @@ function drawTopology() {
     ctx.lineTo(tx, ty);
 
     const isAttacked = conn.attack || to.state === 'BLOCKED' || to.state === 'GRACE';
-    ctx.strokeStyle = to.state === 'BLOCKED' ? 'rgba(239,68,68,0.6)' : isAttacked ? 'rgba(245,158,11,0.5)' : 'rgba(99,130,190,0.14)';
+    ctx.strokeStyle = to.state === 'BLOCKED' ? 'rgba(239,68,68,0.6)' : isAttacked ? 'rgba(245,158,11,0.5)' : 'rgba(255,255,255,0.06)';
     ctx.lineWidth = isAttacked ? 3 : 1.5;
     ctx.stroke();
 
     // Continuous packet particles
     if (Math.random() < (isAttacked ? 0.25 : 0.035)) {
-      const pColor = to.state === 'BLOCKED' ? 'rgba(239,68,68,' : isAttacked ? 'rgba(245,158,11,' : 'rgba(6,182,212,';
+      const pColor = to.state === 'BLOCKED' ? 'rgba(239,68,68,' : isAttacked ? 'rgba(245,158,11,' : 'rgba(255,77,0,';
       topoParticles.push({
         fx, fy, tx, ty,
         progress: 0,
@@ -2507,7 +2553,7 @@ function drawTopology() {
     p.progress += p.speed;
     const x = p.fx + (p.tx - p.fx) * p.progress;
     const y = p.fy + (p.ty - p.fy) * p.progress;
-    const col = p.color || 'rgba(6,182,212,';
+    const col = p.color || 'rgba(255,77,0,';
     const radius = p.isAttack ? 4 : 3;
 
     ctx.beginPath();
@@ -2522,15 +2568,15 @@ function drawTopology() {
   }
 
   // 4. Draw Device Nodes
-  const typeColors = {router:'#3b82f6', firewall:'#8b5cf6', iot:'#10b981', it:'#06b6d4'};
+  const typeColors = {router:'#ff4d00', firewall:'#ef4444', iot:'#22c55e', it:'#888888'};
   const typeIcons = {router:'🌐', firewall:'🛡️', iot:'📡', it:'💻'};
 
   for (const d of topoData.devices) {
     if (!shouldRenderDevice(d)) continue;
     const x = d.x * W, y = d.y * H;
-    let baseColor = typeColors[d.type] || '#94a3b8';
+    let baseColor = typeColors[d.type] || '#888888';
     let ringRadius = 22;
-    let ringColor = 'rgba(59,130,246,0.15)';
+    let ringColor = 'rgba(255,77,0,0.15)';
     let borderStroke = baseColor;
     let badgeIcon = typeIcons[d.type] || '•';
 
